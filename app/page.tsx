@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Calendar, AlertCircle, CheckCircle, AlertTriangle, Plus, Clock, Users, Building, UserPlus, Sparkles, Shield, TrendingUp, Moon, Sun, Home, Trash2, BarChart3, Activity, FileText, X } from 'lucide-react';
+import { Calendar, AlertCircle, CheckCircle, AlertTriangle, Plus, Clock, Users, Building, UserPlus, Sparkles, Shield, TrendingUp, Moon, Sun, Home, Trash2, BarChart3, Activity, FileText, X, Search, Archive, Download, Mail, Filter } from 'lucide-react';
 
 // Mock data store
-const DATA_VERSION = '3.0-deliveroo';
+const DATA_VERSION = '4.0-multi-arrest';
 
 const initializeData = () => {
   if (typeof window === 'undefined') return getDefaultData();
@@ -49,8 +49,8 @@ function getDefaultData() {
       {
         id: '1',
         tenantId: '1',
-        name: 'Deliveroo-arrest Beoordeling',
-        version: '2.0',
+        name: 'Multi-arrest ZZP Beoordeling',
+        version: '3.0',
         isActive: true
       }
     ],
@@ -138,25 +138,78 @@ function getDefaultData() {
       {
         id: '9',
         questionnaireId: '1',
+        key: 'contractualFreedom',
+        prompt: 'Kan de ZZP\'er vrij onderhandelen over prijzen en contractvoorwaarden? (Groen/Schoevers)',
+        type: 'BOOLEAN',
+        required: true,
+        orderIndex: 9,
+        options: null
+      },
+      {
+        id: '10',
+        questionnaireId: '1',
+        key: 'refuseWork',
+        prompt: 'Kan de ZZP\'er opdrachten weigeren zonder consequenties? (Groen/Schoevers)',
+        type: 'BOOLEAN',
+        required: true,
+        orderIndex: 10,
+        options: null
+      },
+      {
+        id: '11',
+        questionnaireId: '1',
+        key: 'platformDependency',
+        prompt: 'Is de ZZP\'er afhankelijk van een platform of systeem van de opdrachtgever? (Helpling)',
+        type: 'BOOLEAN',
+        required: true,
+        orderIndex: 11,
+        options: null
+      },
+      {
+        id: '12',
+        questionnaireId: '1',
+        key: 'ratingSystem',
+        prompt: 'Wordt de ZZP\'er beoordeeld via een ratingsysteem dat invloed heeft op toekomstige opdrachten? (Helpling)',
+        type: 'BOOLEAN',
+        required: true,
+        orderIndex: 12,
+        options: null
+      },
+      {
+        id: '13',
+        questionnaireId: '1',
+        key: 'clientChoice',
+        prompt: 'Kan de ZZP\'er zelf klanten kiezen of worden deze toegewezen? (Helpling)',
+        type: 'BOOLEAN',
+        required: true,
+        orderIndex: 13,
+        options: null
+      },
+      {
+        id: '14',
+        questionnaireId: '1',
         key: 'notes',
         prompt: 'Aanvullende opmerkingen of context',
         type: 'TEXT',
         required: false,
-        orderIndex: 9,
+        orderIndex: 14,
         options: null
       }
     ],
     checkRuns: [],
     answers: [],
     scoreResults: [],
-    auditEvents: []
+    auditEvents: [],
+    archivedEngagements: [],
+    archivedContractors: [],
+    archivedOrganizations: []
   };
 }
 
-const RULESET_VERSION = '2.0.0-deliveroo';
+const RULESET_VERSION = '3.0.0-multi-arrest';
 const THRESHOLDS = {
-  approved: 3,  // Max 3 risicopunten = goedgekeurd
-  warning: 6    // 4-6 punten = ter beoordeling, 7+ = afgekeurd
+  approved: 4,  // Max 4 risicopunten = goedgekeurd
+  warning: 8    // 5-8 punten = ter beoordeling, 9+ = afgekeurd
 };
 
 const computeScore = (answersByKey: any) => {
@@ -257,6 +310,80 @@ const computeScore = (answersByKey: any) => {
       category: 'positive',
       label: 'Heeft meerdere opdrachtgevers',
       recommendation: 'POSITIEF: Meerdere opdrachtgevers tonen echte zelfstandigheid.'
+    },
+    // Groen/Schoevers criteria
+    {
+      key: 'contractualFreedom',
+      condition: (val: any) => val === false,
+      weight: 3,
+      category: 'high',
+      label: 'Geen contractvrijheid',
+      recommendation: 'HOOG RISICO: Volgens Groen/Schoevers-arrest moet een ZZP\'er vrij kunnen onderhandelen over voorwaarden en prijzen.'
+    },
+    {
+      key: 'refuseWork',
+      condition: (val: any) => val === false,
+      weight: 3,
+      category: 'high',
+      label: 'Kan werk niet weigeren',
+      recommendation: 'HOOG RISICO: Het niet kunnen weigeren van opdrachten duidt op een gezagsverhouding (Groen/Schoevers).'
+    },
+    {
+      key: 'contractualFreedom',
+      condition: (val: any) => val === true,
+      weight: -2,
+      category: 'positive',
+      label: 'Contractvrijheid aanwezig',
+      recommendation: 'POSITIEF: Vrije onderhandeling over voorwaarden toont zelfstandigheid (Groen/Schoevers).'
+    },
+    {
+      key: 'refuseWork',
+      condition: (val: any) => val === true,
+      weight: -2,
+      category: 'positive',
+      label: 'Kan opdrachten weigeren',
+      recommendation: 'POSITIEF: De vrijheid om werk te weigeren is kenmerkend voor zelfstandigheid (Groen/Schoevers).'
+    },
+    // Helpling criteria
+    {
+      key: 'platformDependency',
+      condition: (val: any) => val === true,
+      weight: 3,
+      category: 'high',
+      label: 'Platform afhankelijkheid',
+      recommendation: 'HOOG RISICO: Afhankelijkheid van platform/systeem duidt op controle door opdrachtgever (Helpling-arrest).'
+    },
+    {
+      key: 'ratingSystem',
+      condition: (val: any) => val === true,
+      weight: 2,
+      category: 'medium',
+      label: 'Rating systeem aanwezig',
+      recommendation: 'GEMIDDELD RISICO: Beoordelingssysteem kan leiden tot indirecte controle (Helpling-arrest).'
+    },
+    {
+      key: 'clientChoice',
+      condition: (val: any) => val === false,
+      weight: 2,
+      category: 'medium',
+      label: 'Geen klantenkeuze',
+      recommendation: 'GEMIDDELD RISICO: Toegewezen klanten vermindert zelfstandigheid (Helpling-arrest).'
+    },
+    {
+      key: 'platformDependency',
+      condition: (val: any) => val === false,
+      weight: -2,
+      category: 'positive',
+      label: 'Geen platform afhankelijkheid',
+      recommendation: 'POSITIEF: Onafhankelijk van platforms toont echte zelfstandigheid (Helpling).'
+    },
+    {
+      key: 'clientChoice',
+      condition: (val: any) => val === true,
+      weight: -2,
+      category: 'positive',
+      label: 'Kan klanten kiezen',
+      recommendation: 'POSITIEF: Zelf klanten kunnen kiezen is kenmerkend voor ondernemerschap (Helpling).'
     }
   ];
 
@@ -341,6 +468,33 @@ const computeScore = (answersByKey: any) => {
     if (answersByKey.ownClients === false) {
       contractorAdvice.push('Ontwikkel actief uw klantenbestand en werk voor meerdere opdrachtgevers.');
       clientAdvice.push('Eis niet dat de ZZP\'er exclusief voor u werkt. Moedig aan dat de ZZP\'er ook andere opdrachten aanneemt.');
+    }
+
+    // Groen/Schoevers criteria
+    if (answersByKey.contractualFreedom === false) {
+      contractorAdvice.push('Onderhandel actief over uw tarieven en contractvoorwaarden. Laat u niet voorschrijven wat de standaardvoorwaarden zijn.');
+      clientAdvice.push('Laat de ZZP\'er vrij onderhandelen over tarieven en voorwaarden. Gebruik geen standaard niet-onderhandelbare contracten (Groen/Schoevers).');
+    }
+
+    if (answersByKey.refuseWork === false) {
+      contractorAdvice.push('Eis het recht op om opdrachten te weigeren zonder dat dit gevolgen heeft voor toekomstige samenwerking.');
+      clientAdvice.push('De ZZP\'er moet opdrachten kunnen weigeren zonder negatieve consequenties. Dit is essentieel volgens Groen/Schoevers-arrest.');
+    }
+
+    // Helpling criteria
+    if (answersByKey.platformDependency === true) {
+      contractorAdvice.push('Verminder afhankelijkheid van het platform. Gebruik eigen kanalen voor acquisitie en communicatie waar mogelijk.');
+      clientAdvice.push('Maak de ZZP\'er niet afhankelijk van uw platform of systemen voor het verkrijgen van opdrachten (Helpling-arrest).');
+    }
+
+    if (answersByKey.ratingSystem === true) {
+      contractorAdvice.push('Zorg dat beoordelingen transparant zijn en geen indirecte controle uitoefenen op uw werkwijze.');
+      clientAdvice.push('Gebruik beoordelingssystemen niet als controlemiddel. Ratings mogen geen invloed hebben op toewijzing van werk (Helpling).');
+    }
+
+    if (answersByKey.clientChoice === false) {
+      contractorAdvice.push('Eis het recht om zelf te kiezen voor welke klanten u werkt.');
+      clientAdvice.push('Laat de ZZP\'er zelf klanten kiezen in plaats van deze toe te wijzen (Helpling-arrest).');
     }
 
     adviceForContractor = contractorAdvice.length > 0
@@ -855,37 +1009,49 @@ const Dashboard = ({ data, onNavigate, darkMode }: any) => {
           Compliance Status Overzicht
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border-2 border-green-200 dark:border-green-800">
+          <button
+            onClick={() => { onNavigate('engagements'); (window as any).statusFilter = 'GOEDGEKEURD'; }}
+            className="p-6 bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border-2 border-green-200 dark:border-green-800 hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer text-left"
+          >
             <div className="flex items-center justify-between mb-2">
               <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
               <p className="text-3xl font-bold text-green-900 dark:text-green-100">{approvedCount}</p>
             </div>
             <p className="text-sm font-semibold text-green-800 dark:text-green-300">Goedgekeurd</p>
-          </div>
+          </button>
 
-          <div className="p-6 bg-gradient-to-br from-orange-50 to-amber-100 dark:from-orange-900/20 dark:to-amber-900/20 rounded-xl border-2 border-orange-200 dark:border-orange-800">
+          <button
+            onClick={() => { onNavigate('engagements'); (window as any).statusFilter = 'TER_BEOORDELING'; }}
+            className="p-6 bg-gradient-to-br from-orange-50 to-amber-100 dark:from-orange-900/20 dark:to-amber-900/20 rounded-xl border-2 border-orange-200 dark:border-orange-800 hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer text-left"
+          >
             <div className="flex items-center justify-between mb-2">
               <AlertTriangle className="w-8 h-8 text-orange-600 dark:text-orange-400" />
               <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">{warningCount}</p>
             </div>
             <p className="text-sm font-semibold text-orange-800 dark:text-orange-300">Ter Beoordeling</p>
-          </div>
+          </button>
 
-          <div className="p-6 bg-gradient-to-br from-red-50 to-rose-100 dark:from-red-900/20 dark:to-rose-900/20 rounded-xl border-2 border-red-200 dark:border-red-800">
+          <button
+            onClick={() => { onNavigate('engagements'); (window as any).statusFilter = 'AFGEKEURD'; }}
+            className="p-6 bg-gradient-to-br from-red-50 to-rose-100 dark:from-red-900/20 dark:to-rose-900/20 rounded-xl border-2 border-red-200 dark:border-red-800 hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer text-left"
+          >
             <div className="flex items-center justify-between mb-2">
               <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
               <p className="text-3xl font-bold text-red-900 dark:text-red-100">{rejectedCount}</p>
             </div>
             <p className="text-sm font-semibold text-red-800 dark:text-red-300">Afgekeurd</p>
-          </div>
+          </button>
 
-          <div className="p-6 bg-gradient-to-br from-gray-50 to-slate-100 dark:from-gray-700 dark:to-slate-700 rounded-xl border-2 border-gray-200 dark:border-gray-600">
+          <button
+            onClick={() => { onNavigate('engagements'); (window as any).statusFilter = 'PLANNED'; }}
+            className="p-6 bg-gradient-to-br from-gray-50 to-slate-100 dark:from-gray-700 dark:to-slate-700 rounded-xl border-2 border-gray-200 dark:border-gray-600 hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer text-left"
+          >
             <div className="flex items-center justify-between mb-2">
               <Clock className="w-8 h-8 text-gray-600 dark:text-gray-400" />
               <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{pendingCount}</p>
             </div>
             <p className="text-sm font-semibold text-gray-800 dark:text-gray-300">Nog Te Beoordelen</p>
-          </div>
+          </button>
         </div>
       </div>
 
