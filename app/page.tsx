@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Calendar, AlertCircle, CheckCircle, AlertTriangle, Plus, Clock, Users, Building, UserPlus, Sparkles, Shield, TrendingUp } from 'lucide-react';
 
 // Mock data store
-const DATA_VERSION = '2.0';
+const DATA_VERSION = '3.0-deliveroo';
 
 const initializeData = () => {
   if (typeof window === 'undefined') return getDefaultData();
@@ -49,8 +49,8 @@ function getDefaultData() {
       {
         id: '1',
         tenantId: '1',
-        name: 'ZZP Risico Beoordeling',
-        version: '1.0',
+        name: 'Deliveroo-arrest Beoordeling',
+        version: '2.0',
         isActive: true
       }
     ],
@@ -58,8 +58,8 @@ function getDefaultData() {
       {
         id: '1',
         questionnaireId: '1',
-        key: 'authority',
-        prompt: 'Heeft de ZZP\'er gezag over anderen of kan deze zelfstandig beslissingen nemen?',
+        key: 'substitution',
+        prompt: 'Kan de ZZP\'er een vervanger sturen om het werk uit te voeren zonder toestemming?',
         type: 'BOOLEAN',
         required: true,
         orderIndex: 1,
@@ -68,8 +68,8 @@ function getDefaultData() {
       {
         id: '2',
         questionnaireId: '1',
-        key: 'substitution',
-        prompt: 'Kan de ZZP\'er een vervanger sturen om het werk uit te voeren?',
+        key: 'instructions',
+        prompt: 'Moet de ZZP\'er instructies en aanwijzingen van de opdrachtgever opvolgen over hoe het werk wordt uitgevoerd?',
         type: 'BOOLEAN',
         required: true,
         orderIndex: 2,
@@ -78,8 +78,8 @@ function getDefaultData() {
       {
         id: '3',
         questionnaireId: '1',
-        key: 'embedded',
-        prompt: 'Werkt de ZZP\'er ingebed in de organisatie (zelfde kantoor, aanwezig bij alle meetings)?',
+        key: 'workSchedule',
+        prompt: 'Bepaalt de opdrachtgever wanneer en hoeveel uur de ZZP\'er moet werken?',
         type: 'BOOLEAN',
         required: true,
         orderIndex: 3,
@@ -88,8 +88,8 @@ function getDefaultData() {
       {
         id: '4',
         questionnaireId: '1',
-        key: 'ownTools',
-        prompt: 'Gebruikt de ZZP\'er eigen gereedschap en apparatuur?',
+        key: 'integration',
+        prompt: 'Werkt de ZZP\'er volledig geïntegreerd in de organisatie (vast bureau, bedrijfsemail, toegang tot alle systemen)?',
         type: 'BOOLEAN',
         required: true,
         orderIndex: 4,
@@ -98,11 +98,51 @@ function getDefaultData() {
       {
         id: '5',
         questionnaireId: '1',
+        key: 'ownMaterials',
+        prompt: 'Gebruikt de ZZP\'er eigen gereedschap, materialen en apparatuur voor het werk?',
+        type: 'BOOLEAN',
+        required: true,
+        orderIndex: 5,
+        options: null
+      },
+      {
+        id: '6',
+        questionnaireId: '1',
+        key: 'financialRisk',
+        prompt: 'Loopt de ZZP\'er financieel risico (eigen investering, mogelijk verlies, meerdere opdrachtgevers)?',
+        type: 'BOOLEAN',
+        required: true,
+        orderIndex: 6,
+        options: null
+      },
+      {
+        id: '7',
+        questionnaireId: '1',
+        key: 'ownClients',
+        prompt: 'Heeft de ZZP\'er naast deze opdracht ook andere opdrachtgevers?',
+        type: 'BOOLEAN',
+        required: true,
+        orderIndex: 7,
+        options: null
+      },
+      {
+        id: '8',
+        questionnaireId: '1',
+        key: 'fixedSalary',
+        prompt: 'Krijgt de ZZP\'er een vast maandelijks bedrag dat lijkt op een salaris?',
+        type: 'BOOLEAN',
+        required: true,
+        orderIndex: 8,
+        options: null
+      },
+      {
+        id: '9',
+        questionnaireId: '1',
         key: 'notes',
         prompt: 'Aanvullende opmerkingen of context',
         type: 'TEXT',
         required: false,
-        orderIndex: 5,
+        orderIndex: 9,
         options: null
       }
     ],
@@ -113,38 +153,110 @@ function getDefaultData() {
   };
 }
 
-const RULESET_VERSION = '1.0.0';
-const THRESHOLDS = { greenMax: 2, orangeMax: 5 };
+const RULESET_VERSION = '2.0.0-deliveroo';
+const THRESHOLDS = {
+  approved: 3,  // Max 3 risicopunten = goedgekeurd
+  warning: 6    // 4-6 punten = ter beoordeling, 7+ = afgekeurd
+};
 
 const computeScore = (answersByKey: any) => {
   const rules = [
     {
-      key: 'authority',
+      key: 'substitution',
+      condition: (val: any) => val === false,
+      weight: 4,
+      category: 'critical',
+      label: 'Geen vervangingsmogelijkheid',
+      recommendation: 'KRITIEK: Volgens Deliveroo-arrest is het niet kunnen sturen van een vervanger een sterke indicator voor een dienstverband.'
+    },
+    {
+      key: 'instructions',
       condition: (val: any) => val === true,
       weight: 3,
-      label: 'Gezag over anderen',
-      recommendation: 'Hoog risico: ZZP\'er heeft beslissingsbevoegdheid wat wijst op een dienstverband'
+      category: 'high',
+      label: 'Moet instructies opvolgen',
+      recommendation: 'HOOG RISICO: Gezagsverhouding waarbij instructies moeten worden opgevolgd duidt op dienstverband (Deliveroo-arrest).'
     },
+    {
+      key: 'workSchedule',
+      condition: (val: any) => val === true,
+      weight: 3,
+      category: 'high',
+      label: 'Werkschema wordt bepaald',
+      recommendation: 'HOOG RISICO: Opdrachtgever bepaalt wanneer er wordt gewerkt, wat wijst op een gezagsverhouding.'
+    },
+    {
+      key: 'fixedSalary',
+      condition: (val: any) => val === true,
+      weight: 3,
+      category: 'high',
+      label: 'Vast maandelijks bedrag',
+      recommendation: 'HOOG RISICO: Een vaste maandelijkse betaling lijkt op een salaris en duidt op een arbeidsovereenkomst.'
+    },
+    {
+      key: 'integration',
+      condition: (val: any) => val === true,
+      weight: 2,
+      category: 'medium',
+      label: 'Volledig geïntegreerd in organisatie',
+      recommendation: 'GEMIDDELD RISICO: Volledige integratie in de organisatie kan wijzen op een arbeidsrelatie.'
+    },
+    {
+      key: 'ownMaterials',
+      condition: (val: any) => val === false,
+      weight: 2,
+      category: 'medium',
+      label: 'Geen eigen materialen',
+      recommendation: 'GEMIDDELD RISICO: Het niet gebruiken van eigen gereedschap vermindert het ondernemersrisico.'
+    },
+    {
+      key: 'financialRisk',
+      condition: (val: any) => val === false,
+      weight: 3,
+      category: 'high',
+      label: 'Geen financieel risico',
+      recommendation: 'HOOG RISICO: Volgens Deliveroo-arrest moet een ZZP\'er ondernemersrisico lopen.'
+    },
+    {
+      key: 'ownClients',
+      condition: (val: any) => val === false,
+      weight: 2,
+      category: 'medium',
+      label: 'Geen andere opdrachtgevers',
+      recommendation: 'GEMIDDELD RISICO: Afhankelijkheid van één opdrachtgever duidt op minder zelfstandigheid.'
+    },
+    // Positieve indicatoren
     {
       key: 'substitution',
       condition: (val: any) => val === true,
+      weight: -3,
+      category: 'positive',
+      label: 'Vervangingsmogelijkheid aanwezig',
+      recommendation: 'POSITIEF: Het kunnen sturen van een vervanger is een sterke indicator voor zelfstandigheid (Deliveroo-arrest).'
+    },
+    {
+      key: 'ownMaterials',
+      condition: (val: any) => val === true,
       weight: -2,
-      label: 'Vervanging toegestaan',
-      recommendation: 'Laag risico: mogelijkheid tot vervanging duidt op zelfstandige status'
+      category: 'positive',
+      label: 'Gebruikt eigen materialen',
+      recommendation: 'POSITIEF: Eigen gereedschap en materialen tonen ondernemerschap.'
     },
     {
-      key: 'embedded',
+      key: 'financialRisk',
       condition: (val: any) => val === true,
-      weight: 2,
-      label: 'Ingebed in organisatie',
-      recommendation: 'Gemiddeld risico: werken op locatie als werknemer suggereert mogelijk dienstverband'
+      weight: -3,
+      category: 'positive',
+      label: 'Loopt financieel risico',
+      recommendation: 'POSITIEF: Ondernemersrisico is essentieel voor ZZP-status volgens Deliveroo-arrest.'
     },
     {
-      key: 'ownTools',
+      key: 'ownClients',
       condition: (val: any) => val === true,
-      weight: -1,
-      label: 'Eigen gereedschap',
-      recommendation: 'Laag risico: gebruik van eigen materiaal ondersteunt zelfstandige status'
+      weight: -2,
+      category: 'positive',
+      label: 'Heeft meerdere opdrachtgevers',
+      recommendation: 'POSITIEF: Meerdere opdrachtgevers tonen echte zelfstandigheid.'
     }
   ];
 
@@ -158,6 +270,7 @@ const computeScore = (answersByKey: any) => {
       triggeredRules.push({
         label: rule.label,
         weight: rule.weight,
+        category: rule.category,
         answer: answer,
         recommendation: rule.recommendation
       });
@@ -165,17 +278,28 @@ const computeScore = (answersByKey: any) => {
   });
 
   let status;
-  if (totalScore <= THRESHOLDS.greenMax) {
-    status = 'GROEN';
-  } else if (totalScore <= THRESHOLDS.orangeMax) {
-    status = 'ORANJE';
+  let statusLabel;
+  let verdict;
+
+  if (totalScore <= THRESHOLDS.approved) {
+    status = 'GOEDGEKEURD';
+    statusLabel = 'GOEDGEKEURD';
+    verdict = 'Deze ZZP-opdracht voldoet aan de criteria uit het Deliveroo-arrest. Er is voldoende zelfstandigheid en ondernemersrisico.';
+  } else if (totalScore <= THRESHOLDS.warning) {
+    status = 'TER_BEOORDELING';
+    statusLabel = 'TER BEOORDELING';
+    verdict = 'Deze opdracht bevat enkele risicofactoren. Aanvullende juridische beoordeling wordt aanbevolen.';
   } else {
-    status = 'ROOD';
+    status = 'AFGEKEURD';
+    statusLabel = 'AFGEKEURD';
+    verdict = 'Deze opdracht voldoet NIET aan de criteria uit het Deliveroo-arrest. Er zijn te veel indicatoren voor een dienstverband. Raadpleeg een juridisch adviseur.';
   }
 
   return {
     totalScore,
     status,
+    statusLabel,
+    verdict,
     triggeredRules,
     rulesetVersion: RULESET_VERSION
   };
@@ -183,29 +307,33 @@ const computeScore = (answersByKey: any) => {
 
 const StatusBadge = ({ status }: { status: string }) => {
   const config: any = {
-    GROEN: { 
-      bg: 'bg-gradient-to-r from-emerald-500 to-green-500', 
-      text: 'text-white', 
+    GOEDGEKEURD: {
+      bg: 'bg-gradient-to-r from-emerald-500 to-green-600',
+      text: 'text-white',
       icon: CheckCircle,
-      shadow: 'shadow-lg shadow-green-500/50'
+      shadow: 'shadow-xl shadow-green-500/50',
+      label: '✓ GOEDGEKEURD'
     },
-    ORANJE: { 
-      bg: 'bg-gradient-to-r from-amber-500 to-orange-500', 
-      text: 'text-white', 
+    TER_BEOORDELING: {
+      bg: 'bg-gradient-to-r from-amber-500 to-orange-600',
+      text: 'text-white',
       icon: AlertTriangle,
-      shadow: 'shadow-lg shadow-orange-500/50'
+      shadow: 'shadow-xl shadow-orange-500/50',
+      label: '⚠ TER BEOORDELING'
     },
-    ROOD: { 
-      bg: 'bg-gradient-to-r from-red-500 to-rose-500', 
-      text: 'text-white', 
+    AFGEKEURD: {
+      bg: 'bg-gradient-to-r from-red-500 to-rose-600',
+      text: 'text-white',
       icon: AlertCircle,
-      shadow: 'shadow-lg shadow-red-500/50'
+      shadow: 'shadow-xl shadow-red-500/50',
+      label: '✗ AFGEKEURD'
     },
-    PLANNED: { 
-      bg: 'bg-gradient-to-r from-slate-500 to-gray-500', 
-      text: 'text-white', 
+    PLANNED: {
+      bg: 'bg-gradient-to-r from-slate-500 to-gray-600',
+      text: 'text-white',
       icon: Clock,
-      shadow: 'shadow-lg shadow-gray-500/50'
+      shadow: 'shadow-xl shadow-gray-500/50',
+      label: 'NOG TE BEOORDELEN'
     }
   };
 
@@ -213,9 +341,9 @@ const StatusBadge = ({ status }: { status: string }) => {
   const Icon = cfg.icon;
 
   return (
-    <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${cfg.bg} ${cfg.text} ${cfg.shadow} transition-all duration-300 hover:scale-105`}>
-      <Icon className="w-4 h-4" />
-      {status}
+    <span className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-base font-bold ${cfg.bg} ${cfg.text} ${cfg.shadow} transition-all duration-300 hover:scale-105 uppercase tracking-wide`}>
+      <Icon className="w-5 h-5" />
+      {cfg.label}
     </span>
   );
 };
@@ -713,6 +841,10 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
 
   if (showResults && scoreResult) {
     const triggeredRules = JSON.parse(scoreResult.triggeredRules || '[]');
+    const criticalRules = triggeredRules.filter((r: any) => r.category === 'critical');
+    const highRiskRules = triggeredRules.filter((r: any) => r.category === 'high');
+    const mediumRiskRules = triggeredRules.filter((r: any) => r.category === 'medium');
+    const positiveRules = triggeredRules.filter((r: any) => r.category === 'positive');
 
     return (
       <div className="space-y-6">
@@ -723,40 +855,152 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
           ← Terug naar overzicht
         </button>
 
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+        <div className="bg-white rounded-2xl shadow-2xl p-10 border-2 border-gray-200">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Compliance Beoordeling</h2>
-            <p className="text-gray-600 mb-6">{engagement.roleTitle}</p>
-            <StatusBadge status={scoreResult.status} />
+            <div className="inline-block px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold mb-4">
+              Deliveroo-arrest Beoordeling
+            </div>
+            <h2 className="text-4xl font-bold text-gray-900 mb-3">{engagement.roleTitle}</h2>
+            <p className="text-gray-600 mb-6 text-lg">{contractor?.displayName} @ {organization?.name}</p>
+            <div className="mb-6">
+              <StatusBadge status={scoreResult.status} />
+            </div>
+            <div className={`p-6 rounded-2xl ${
+              scoreResult.status === 'GOEDGEKEURD' ? 'bg-green-50 border-2 border-green-200' :
+              scoreResult.status === 'AFGEKEURD' ? 'bg-red-50 border-2 border-red-200' :
+              'bg-orange-50 border-2 border-orange-200'
+            }`}>
+              <p className={`text-lg font-semibold ${
+                scoreResult.status === 'GOEDGEKEURD' ? 'text-green-900' :
+                scoreResult.status === 'AFGEKEURD' ? 'text-red-900' :
+                'text-orange-900'
+              }`}>
+                {scoreResult.verdict || 'Beoordeling voltooied'}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-6 mb-8">
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl border border-gray-200">
+                <p className="text-3xl font-bold text-gray-900">{scoreResult.totalScore}</p>
+                <p className="text-sm text-gray-600 mt-1">Risico Score</p>
+              </div>
+              <div className="bg-gradient-to-br from-red-50 to-rose-100 p-6 rounded-xl border border-red-200">
+                <p className="text-3xl font-bold text-red-900">{criticalRules.length + highRiskRules.length + mediumRiskRules.length}</p>
+                <p className="text-sm text-red-700 mt-1">Risicofactoren</p>
+              </div>
+              <div className="bg-gradient-to-br from-green-50 to-emerald-100 p-6 rounded-xl border border-green-200">
+                <p className="text-3xl font-bold text-green-900">{positiveRules.length}</p>
+                <p className="text-sm text-green-700 mt-1">Positieve Factoren</p>
+              </div>
+            </div>
           </div>
 
           <div className="space-y-6">
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Analyse</h3>
-              <div className="space-y-4">
-                {triggeredRules.map((rule: any, idx: number) => (
-                  <div key={idx} className="bg-white rounded-lg p-4 border border-gray-200">
-                    <div className="flex items-start gap-3">
-                      <div className={`p-2 rounded-lg ${rule.weight > 0 ? 'bg-red-100' : 'bg-green-100'}`}>
-                        {rule.weight > 0 ? <AlertCircle className="w-5 h-5 text-red-600" /> : <CheckCircle className="w-5 h-5 text-green-600" />}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-900">{rule.label}</p>
-                        <p className="text-sm text-gray-600 mt-1">{rule.recommendation}</p>
-                        <p className="text-xs text-gray-500 mt-2">Impact: {rule.weight > 0 ? '+' : ''}{rule.weight} punten</p>
+            {criticalRules.length > 0 && (
+              <div className="bg-red-50 rounded-2xl p-6 border-2 border-red-200">
+                <h3 className="text-xl font-bold text-red-900 mb-4 flex items-center gap-2">
+                  <AlertCircle className="w-6 h-6" />
+                  Kritieke Risicofactoren
+                </h3>
+                <div className="space-y-3">
+                  {criticalRules.map((rule: any, idx: number) => (
+                    <div key={idx} className="bg-white rounded-lg p-4 border-2 border-red-300">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 rounded-lg bg-red-100">
+                          <AlertCircle className="w-5 h-5 text-red-700" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-red-900">{rule.label}</p>
+                          <p className="text-sm text-red-700 mt-1">{rule.recommendation}</p>
+                          <p className="text-xs text-red-600 mt-2 font-semibold">Risico-impact: +{rule.weight} punten</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
-            <div className="text-center">
-              <p className="text-2xl font-bold text-gray-900">Totale Score: {scoreResult.totalScore}</p>
-              <p className="text-sm text-gray-600 mt-2">
-                Beoordeeld op {new Date(latestCheckRun.timestamp).toLocaleDateString('nl-NL')}
-              </p>
-            </div>
+            {highRiskRules.length > 0 && (
+              <div className="bg-orange-50 rounded-2xl p-6 border-2 border-orange-200">
+                <h3 className="text-xl font-bold text-orange-900 mb-4 flex items-center gap-2">
+                  <AlertTriangle className="w-6 h-6" />
+                  Hoge Risicofactoren
+                </h3>
+                <div className="space-y-3">
+                  {highRiskRules.map((rule: any, idx: number) => (
+                    <div key={idx} className="bg-white rounded-lg p-4 border-2 border-orange-300">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 rounded-lg bg-orange-100">
+                          <AlertTriangle className="w-5 h-5 text-orange-700" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-orange-900">{rule.label}</p>
+                          <p className="text-sm text-orange-700 mt-1">{rule.recommendation}</p>
+                          <p className="text-xs text-orange-600 mt-2 font-semibold">Risico-impact: +{rule.weight} punten</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {mediumRiskRules.length > 0 && (
+              <div className="bg-yellow-50 rounded-2xl p-6 border-2 border-yellow-200">
+                <h3 className="text-xl font-bold text-yellow-900 mb-4">Gemiddelde Risicofactoren</h3>
+                <div className="space-y-3">
+                  {mediumRiskRules.map((rule: any, idx: number) => (
+                    <div key={idx} className="bg-white rounded-lg p-4 border border-yellow-300">
+                      <p className="font-semibold text-yellow-900">{rule.label}</p>
+                      <p className="text-sm text-yellow-700 mt-1">{rule.recommendation}</p>
+                      <p className="text-xs text-yellow-600 mt-2">Impact: +{rule.weight} punten</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {positiveRules.length > 0 && (
+              <div className="bg-green-50 rounded-2xl p-6 border-2 border-green-200">
+                <h3 className="text-xl font-bold text-green-900 mb-4 flex items-center gap-2">
+                  <CheckCircle className="w-6 h-6" />
+                  Positieve Factoren (Zelfstandigheid)
+                </h3>
+                <div className="space-y-3">
+                  {positiveRules.map((rule: any, idx: number) => (
+                    <div key={idx} className="bg-white rounded-lg p-4 border-2 border-green-300">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 rounded-lg bg-green-100">
+                          <CheckCircle className="w-5 h-5 text-green-700" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-green-900">{rule.label}</p>
+                          <p className="text-sm text-green-700 mt-1">{rule.recommendation}</p>
+                          <p className="text-xs text-green-600 mt-2 font-semibold">Positieve impact: {rule.weight} punten</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-8 pt-8 border-t-2 border-gray-200 text-center">
+            <p className="text-sm text-gray-600">
+              Beoordeeld op {new Date(latestCheckRun.timestamp).toLocaleDateString('nl-NL', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </p>
+            <p className="text-xs text-gray-500 mt-2">
+              Ruleset versie: {scoreResult.rulesetVersion}
+            </p>
           </div>
         </div>
       </div>
@@ -805,7 +1049,10 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
         )}
 
         <div className="space-y-6">
-          <h3 className="text-xl font-bold text-gray-900">Nieuwe Beoordeling</h3>
+          <div className="mb-6">
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">Nieuwe Beoordeling</h3>
+            <p className="text-gray-600">Beantwoord de vragen volgens de criteria uit het Deliveroo-arrest van de Hoge Raad (24 november 2023)</p>
+          </div>
           {questions.map((question: any) => (
             <div key={question.id} className="p-6 bg-gray-50 rounded-xl border border-gray-200">
               <label className="block text-gray-900 font-semibold mb-4">{question.prompt}</label>
