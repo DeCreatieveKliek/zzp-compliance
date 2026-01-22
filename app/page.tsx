@@ -564,6 +564,160 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
+const ExportModal = ({ onClose, scoreResult, engagement, contractor, organization }: any) => {
+  const [email, setEmail] = useState('');
+  const [exportType, setExportType] = useState<'pdf' | 'email'>('pdf');
+
+  const generatePDFContent = () => {
+    const content = `
+ZZP COMPLIANCE RAPPORT
+======================
+
+Beoordeling: Multi-arrest Compliance Check
+Datum: ${new Date().toLocaleDateString('nl-NL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+
+OPDRACHT DETAILS
+-----------------
+Rol: ${engagement.roleTitle}
+ZZP'er: ${contractor.displayName}
+Organisatie: ${organization.name}
+Periode: ${engagement.startDate}${engagement.endDate ? ` - ${engagement.endDate}` : ''}
+${engagement.rateHourly > 0 ? `Uurtarief: €${engagement.rateHourly}` : ''}
+
+BEOORDELING RESULTAAT
+---------------------
+Status: ${scoreResult.status}
+Risico Score: ${scoreResult.totalScore}
+Verdict: ${scoreResult.verdict}
+
+${scoreResult.adviceForContractor ? `
+ADVIES VOOR ZZP'ER
+------------------
+${scoreResult.adviceForContractor}
+` : ''}
+
+${scoreResult.adviceForClient ? `
+ADVIES VOOR OPDRACHTGEVER
+--------------------------
+${scoreResult.adviceForClient}
+` : ''}
+
+---
+Gegenereerd door ZZP Compliance MVP • DCK x ZENO
+Ruleset versie: ${scoreResult.rulesetVersion}
+    `;
+    return content;
+  };
+
+  const handleExport = () => {
+    if (exportType === 'pdf') {
+      const content = generatePDFContent();
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `zzp-compliance-${engagement.roleTitle.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      alert('Rapport gedownload! (Productie versie zou een PDF genereren)');
+      onClose();
+    } else if (exportType === 'email') {
+      if (!email) {
+        alert('Vul een email adres in');
+        return;
+      }
+      // In productie zou dit een API call zijn naar een backend
+      alert(`Rapport zou worden verstuurd naar: ${email}\n(Productie versie zou via backend een email versturen)`);
+      onClose();
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-md transform animate-in slide-in-from-bottom-4 duration-300">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
+            <Download className="w-6 h-6 text-white" />
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Rapport Exporteren
+          </h3>
+        </div>
+
+        <div className="space-y-6">
+          <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl">
+            <p className="text-sm text-blue-900 dark:text-blue-200 font-semibold">
+              {engagement.roleTitle}
+            </p>
+            <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+              {contractor.displayName} @ {organization.name}
+            </p>
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => setExportType('pdf')}
+              className={`flex-1 p-4 rounded-xl border-2 transition-all duration-200 ${
+                exportType === 'pdf'
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                  : 'border-gray-200 dark:border-gray-600 hover:border-blue-300'
+              }`}
+            >
+              <Download className="w-6 h-6 mx-auto mb-2 text-blue-600" />
+              <p className="text-sm font-semibold text-gray-900 dark:text-white">Download PDF</p>
+            </button>
+            <button
+              onClick={() => setExportType('email')}
+              className={`flex-1 p-4 rounded-xl border-2 transition-all duration-200 ${
+                exportType === 'email'
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                  : 'border-gray-200 dark:border-gray-600 hover:border-blue-300'
+              }`}
+            >
+              <Mail className="w-6 h-6 mx-auto mb-2 text-blue-600" />
+              <p className="text-sm font-semibold text-gray-900 dark:text-white">Verstuur Email</p>
+            </button>
+          </div>
+
+          {exportType === 'email' && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Email adres *
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                placeholder="naam@example.com"
+              />
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-6 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 font-semibold transition-all duration-200 dark:text-white"
+            >
+              Annuleren
+            </button>
+            <button
+              type="button"
+              onClick={handleExport}
+              className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 font-semibold shadow-lg shadow-blue-500/50 transition-all duration-200"
+            >
+              {exportType === 'pdf' ? 'Download' : 'Verstuur'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const DeleteConfirmModal = ({ onClose, onConfirm, itemName, itemType }: any) => {
   const [confirmText, setConfirmText] = useState('');
   const [sliderValue, setSliderValue] = useState(0);
@@ -1252,6 +1406,16 @@ const PeopleManagement = ({ data, onUpdate, darkMode }: any) => {
 };
 
 const EngagementList = ({ data, onSelectEngagement, onAddEngagement }: any) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState((window as any).statusFilter || 'ALL');
+
+  useEffect(() => {
+    if ((window as any).statusFilter) {
+      setStatusFilter((window as any).statusFilter);
+      (window as any).statusFilter = null;
+    }
+  }, []);
+
   const getLatestCheckRun = (engagementId: string) => {
     return data.checkRuns
       .filter((cr: any) => cr.engagementId === engagementId)
@@ -1261,12 +1425,29 @@ const EngagementList = ({ data, onSelectEngagement, onAddEngagement }: any) => {
   const getContractor = (id: string) => data.contractors.find((c: any) => c.id === id);
   const getOrganization = (id: string) => data.organizations.find((o: any) => o.id === id);
 
+  const filteredEngagements = data.engagements.filter((engagement: any) => {
+    const contractor = getContractor(engagement.contractorId);
+    const organization = getOrganization(engagement.organizationId);
+    const latestCheck = getLatestCheckRun(engagement.id);
+    const scoreResult = latestCheck ? data.scoreResults.find((sr: any) => sr.checkRunId === latestCheck.id) : null;
+    const status = scoreResult?.status || 'PLANNED';
+
+    const matchesSearch = searchQuery === '' ||
+      engagement.roleTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      contractor?.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      organization?.name.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesStatus = statusFilter === 'ALL' || status === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Opdrachten</h2>
-          <p className="text-gray-600 mt-1">Overzicht van alle ZZP-opdrachten en hun compliance status</p>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Opdrachten</h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">Overzicht van alle ZZP-opdrachten en hun compliance status</p>
         </div>
         <button
           onClick={onAddEngagement}
@@ -1277,8 +1458,32 @@ const EngagementList = ({ data, onSelectEngagement, onAddEngagement }: any) => {
         </button>
       </div>
 
+      <div className="flex gap-4">
+        <div className="flex-1 relative">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Zoek op rol, ZZP'er of organisatie..."
+            className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+          />
+        </div>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+        >
+          <option value="ALL">Alle Statussen</option>
+          <option value="GOEDGEKEURD">Goedgekeurd</option>
+          <option value="TER_BEOORDELING">Ter Beoordeling</option>
+          <option value="AFGEKEURD">Afgekeurd</option>
+          <option value="PLANNED">Nog Te Beoordelen</option>
+        </select>
+      </div>
+
       <div className="grid gap-6">
-        {data.engagements.map((engagement: any) => {
+        {filteredEngagements.map((engagement: any) => {
           const contractor = getContractor(engagement.contractorId);
           const organization = getOrganization(engagement.organizationId);
           const latestCheck = getLatestCheckRun(engagement.id);
@@ -1288,20 +1493,20 @@ const EngagementList = ({ data, onSelectEngagement, onAddEngagement }: any) => {
             <div
               key={engagement.id}
               onClick={() => onSelectEngagement(engagement.id)}
-              className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700 hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-3">
-                    <h3 className="text-2xl font-bold text-gray-900">{engagement.roleTitle}</h3>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{engagement.roleTitle}</h3>
                     {scoreResult && <StatusBadge status={scoreResult.status} />}
                     {!scoreResult && <StatusBadge status="PLANNED" />}
                   </div>
-                  <div className="space-y-2 text-gray-600">
+                  <div className="space-y-2 text-gray-600 dark:text-gray-400">
                     <p className="flex items-center gap-2">
                       <Users className="w-4 h-4" />
                       <span className="font-semibold">{contractor?.displayName}</span>
-                      <span className="text-gray-400">@</span>
+                      <span className="text-gray-400 dark:text-gray-500">@</span>
                       <span className="font-semibold">{organization?.name}</span>
                     </p>
                     <p className="flex items-center gap-2">
@@ -1318,8 +1523,8 @@ const EngagementList = ({ data, onSelectEngagement, onAddEngagement }: any) => {
                 </div>
               </div>
               {scoreResult && (
-                <div className="mt-6 pt-6 border-t border-gray-100">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                     <Sparkles className="w-4 h-4 text-blue-600" />
                     Laatste check: {new Date(latestCheck.timestamp).toLocaleDateString('nl-NL')} • Score: {scoreResult.totalScore}
                   </div>
@@ -1336,6 +1541,7 @@ const EngagementList = ({ data, onSelectEngagement, onAddEngagement }: any) => {
 const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
   const [answers, setAnswers] = useState<any>({});
   const [showResults, setShowResults] = useState(false);
+  const [showExport, setShowExport] = useState(false);
 
   const contractor = data.contractors.find((c: any) => c.id === engagement.contractorId);
   const organization = data.organizations.find((o: any) => o.id === engagement.organizationId);
@@ -1407,32 +1613,51 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
 
     return (
       <div className="space-y-6">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-200"
-        >
-          ← Terug naar overzicht
-        </button>
+        <div className="flex items-center justify-between">
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-200"
+          >
+            ← Terug naar overzicht
+          </button>
+          <button
+            onClick={() => setShowExport(true)}
+            className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 font-semibold shadow-lg shadow-blue-500/50 transition-all duration-200"
+          >
+            <Download className="w-5 h-5" />
+            Exporteer Rapport
+          </button>
+        </div>
 
-        <div className="bg-white rounded-2xl shadow-2xl p-10 border-2 border-gray-200">
+        {showExport && (
+          <ExportModal
+            onClose={() => setShowExport(false)}
+            scoreResult={scoreResult}
+            engagement={engagement}
+            contractor={contractor}
+            organization={organization}
+          />
+        )}
+
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-10 border-2 border-gray-200 dark:border-gray-700">
           <div className="text-center mb-8">
-            <div className="inline-block px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold mb-4">
-              Deliveroo-arrest Beoordeling
+            <div className="inline-block px-4 py-2 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 rounded-full text-sm font-semibold mb-4">
+              Multi-arrest Compliance Beoordeling
             </div>
-            <h2 className="text-4xl font-bold text-gray-900 mb-3">{engagement.roleTitle}</h2>
-            <p className="text-gray-600 mb-6 text-lg">{contractor?.displayName} @ {organization?.name}</p>
+            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-3">{engagement.roleTitle}</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6 text-lg">{contractor?.displayName} @ {organization?.name}</p>
             <div className="mb-6">
               <StatusBadge status={scoreResult.status} />
             </div>
             <div className={`p-6 rounded-2xl ${
-              scoreResult.status === 'GOEDGEKEURD' ? 'bg-green-50 border-2 border-green-200' :
-              scoreResult.status === 'AFGEKEURD' ? 'bg-red-50 border-2 border-red-200' :
-              'bg-orange-50 border-2 border-orange-200'
+              scoreResult.status === 'GOEDGEKEURD' ? 'bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800' :
+              scoreResult.status === 'AFGEKEURD' ? 'bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800' :
+              'bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-200 dark:border-orange-800'
             }`}>
               <p className={`text-lg font-semibold ${
-                scoreResult.status === 'GOEDGEKEURD' ? 'text-green-900' :
-                scoreResult.status === 'AFGEKEURD' ? 'text-red-900' :
-                'text-orange-900'
+                scoreResult.status === 'GOEDGEKEURD' ? 'text-green-900 dark:text-green-100' :
+                scoreResult.status === 'AFGEKEURD' ? 'text-red-900 dark:text-red-100' :
+                'text-orange-900 dark:text-orange-100'
               }`}>
                 {scoreResult.verdict || 'Beoordeling voltooied'}
               </p>
@@ -1441,39 +1666,39 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
 
           <div className="space-y-6 mb-8">
             <div className="grid grid-cols-3 gap-4 text-center">
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl border border-gray-200">
-                <p className="text-3xl font-bold text-gray-900">{scoreResult.totalScore}</p>
-                <p className="text-sm text-gray-600 mt-1">Risico Score</p>
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-600">
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">{scoreResult.totalScore}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Risico Score</p>
               </div>
-              <div className="bg-gradient-to-br from-red-50 to-rose-100 p-6 rounded-xl border border-red-200">
-                <p className="text-3xl font-bold text-red-900">{criticalRules.length + highRiskRules.length + mediumRiskRules.length}</p>
-                <p className="text-sm text-red-700 mt-1">Risicofactoren</p>
+              <div className="bg-gradient-to-br from-red-50 to-rose-100 dark:from-red-900/20 dark:to-rose-900/20 p-6 rounded-xl border border-red-200 dark:border-red-800">
+                <p className="text-3xl font-bold text-red-900 dark:text-red-100">{criticalRules.length + highRiskRules.length + mediumRiskRules.length}</p>
+                <p className="text-sm text-red-700 dark:text-red-300 mt-1">Risicofactoren</p>
               </div>
-              <div className="bg-gradient-to-br from-green-50 to-emerald-100 p-6 rounded-xl border border-green-200">
-                <p className="text-3xl font-bold text-green-900">{positiveRules.length}</p>
-                <p className="text-sm text-green-700 mt-1">Positieve Factoren</p>
+              <div className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 p-6 rounded-xl border border-green-200 dark:border-green-800">
+                <p className="text-3xl font-bold text-green-900 dark:text-green-100">{positiveRules.length}</p>
+                <p className="text-sm text-green-700 dark:text-green-300 mt-1">Positieve Factoren</p>
               </div>
             </div>
           </div>
 
           <div className="space-y-6">
             {criticalRules.length > 0 && (
-              <div className="bg-red-50 rounded-2xl p-6 border-2 border-red-200">
-                <h3 className="text-xl font-bold text-red-900 mb-4 flex items-center gap-2">
+              <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl p-6 border-2 border-red-200 dark:border-red-800">
+                <h3 className="text-xl font-bold text-red-900 dark:text-red-100 mb-4 flex items-center gap-2">
                   <AlertCircle className="w-6 h-6" />
                   Kritieke Risicofactoren
                 </h3>
                 <div className="space-y-3">
                   {criticalRules.map((rule: any, idx: number) => (
-                    <div key={idx} className="bg-white rounded-lg p-4 border-2 border-red-300">
+                    <div key={idx} className="bg-white dark:bg-gray-800 rounded-lg p-4 border-2 border-red-300 dark:border-red-700">
                       <div className="flex items-start gap-3">
-                        <div className="p-2 rounded-lg bg-red-100">
-                          <AlertCircle className="w-5 h-5 text-red-700" />
+                        <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/40">
+                          <AlertCircle className="w-5 h-5 text-red-700 dark:text-red-300" />
                         </div>
                         <div className="flex-1">
-                          <p className="font-bold text-red-900">{rule.label}</p>
-                          <p className="text-sm text-red-700 mt-1">{rule.recommendation}</p>
-                          <p className="text-xs text-red-600 mt-2 font-semibold">Risico-impact: +{rule.weight} punten</p>
+                          <p className="font-bold text-red-900 dark:text-red-100">{rule.label}</p>
+                          <p className="text-sm text-red-700 dark:text-red-300 mt-1">{rule.recommendation}</p>
+                          <p className="text-xs text-red-600 dark:text-red-400 mt-2 font-semibold">Risico-impact: +{rule.weight} punten</p>
                         </div>
                       </div>
                     </div>
@@ -1483,22 +1708,22 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
             )}
 
             {highRiskRules.length > 0 && (
-              <div className="bg-orange-50 rounded-2xl p-6 border-2 border-orange-200">
-                <h3 className="text-xl font-bold text-orange-900 mb-4 flex items-center gap-2">
+              <div className="bg-orange-50 dark:bg-orange-900/20 rounded-2xl p-6 border-2 border-orange-200 dark:border-orange-800">
+                <h3 className="text-xl font-bold text-orange-900 dark:text-orange-100 mb-4 flex items-center gap-2">
                   <AlertTriangle className="w-6 h-6" />
                   Hoge Risicofactoren
                 </h3>
                 <div className="space-y-3">
                   {highRiskRules.map((rule: any, idx: number) => (
-                    <div key={idx} className="bg-white rounded-lg p-4 border-2 border-orange-300">
+                    <div key={idx} className="bg-white dark:bg-gray-800 rounded-lg p-4 border-2 border-orange-300 dark:border-orange-700">
                       <div className="flex items-start gap-3">
-                        <div className="p-2 rounded-lg bg-orange-100">
-                          <AlertTriangle className="w-5 h-5 text-orange-700" />
+                        <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/40">
+                          <AlertTriangle className="w-5 h-5 text-orange-700 dark:text-orange-300" />
                         </div>
                         <div className="flex-1">
-                          <p className="font-bold text-orange-900">{rule.label}</p>
-                          <p className="text-sm text-orange-700 mt-1">{rule.recommendation}</p>
-                          <p className="text-xs text-orange-600 mt-2 font-semibold">Risico-impact: +{rule.weight} punten</p>
+                          <p className="font-bold text-orange-900 dark:text-orange-100">{rule.label}</p>
+                          <p className="text-sm text-orange-700 dark:text-orange-300 mt-1">{rule.recommendation}</p>
+                          <p className="text-xs text-orange-600 dark:text-orange-400 mt-2 font-semibold">Risico-impact: +{rule.weight} punten</p>
                         </div>
                       </div>
                     </div>
@@ -1508,14 +1733,14 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
             )}
 
             {mediumRiskRules.length > 0 && (
-              <div className="bg-yellow-50 rounded-2xl p-6 border-2 border-yellow-200">
-                <h3 className="text-xl font-bold text-yellow-900 mb-4">Gemiddelde Risicofactoren</h3>
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-2xl p-6 border-2 border-yellow-200 dark:border-yellow-800">
+                <h3 className="text-xl font-bold text-yellow-900 dark:text-yellow-100 mb-4">Gemiddelde Risicofactoren</h3>
                 <div className="space-y-3">
                   {mediumRiskRules.map((rule: any, idx: number) => (
-                    <div key={idx} className="bg-white rounded-lg p-4 border border-yellow-300">
-                      <p className="font-semibold text-yellow-900">{rule.label}</p>
-                      <p className="text-sm text-yellow-700 mt-1">{rule.recommendation}</p>
-                      <p className="text-xs text-yellow-600 mt-2">Impact: +{rule.weight} punten</p>
+                    <div key={idx} className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-yellow-300 dark:border-yellow-700">
+                      <p className="font-semibold text-yellow-900 dark:text-yellow-100">{rule.label}</p>
+                      <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">{rule.recommendation}</p>
+                      <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-2">Impact: +{rule.weight} punten</p>
                     </div>
                   ))}
                 </div>
@@ -1523,22 +1748,22 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
             )}
 
             {positiveRules.length > 0 && (
-              <div className="bg-green-50 rounded-2xl p-6 border-2 border-green-200">
-                <h3 className="text-xl font-bold text-green-900 mb-4 flex items-center gap-2">
+              <div className="bg-green-50 dark:bg-green-900/20 rounded-2xl p-6 border-2 border-green-200 dark:border-green-800">
+                <h3 className="text-xl font-bold text-green-900 dark:text-green-100 mb-4 flex items-center gap-2">
                   <CheckCircle className="w-6 h-6" />
                   Positieve Factoren (Zelfstandigheid)
                 </h3>
                 <div className="space-y-3">
                   {positiveRules.map((rule: any, idx: number) => (
-                    <div key={idx} className="bg-white rounded-lg p-4 border-2 border-green-300">
+                    <div key={idx} className="bg-white dark:bg-gray-800 rounded-lg p-4 border-2 border-green-300 dark:border-green-700">
                       <div className="flex items-start gap-3">
-                        <div className="p-2 rounded-lg bg-green-100">
-                          <CheckCircle className="w-5 h-5 text-green-700" />
+                        <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/40">
+                          <CheckCircle className="w-5 h-5 text-green-700 dark:text-green-300" />
                         </div>
                         <div className="flex-1">
-                          <p className="font-bold text-green-900">{rule.label}</p>
-                          <p className="text-sm text-green-700 mt-1">{rule.recommendation}</p>
-                          <p className="text-xs text-green-600 mt-2 font-semibold">Positieve impact: {rule.weight} punten</p>
+                          <p className="font-bold text-green-900 dark:text-green-100">{rule.label}</p>
+                          <p className="text-sm text-green-700 dark:text-green-300 mt-1">{rule.recommendation}</p>
+                          <p className="text-xs text-green-600 dark:text-green-400 mt-2 font-semibold">Positieve impact: {rule.weight} punten</p>
                         </div>
                       </div>
                     </div>
@@ -1619,10 +1844,10 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
         ← Terug naar overzicht
       </button>
 
-      <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">{engagement.roleTitle}</h2>
-          <div className="flex items-center gap-4 text-gray-600">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{engagement.roleTitle}</h2>
+          <div className="flex items-center gap-4 text-gray-600 dark:text-gray-400">
             <span className="flex items-center gap-2">
               <Users className="w-4 h-4" />
               {contractor?.displayName}
@@ -1635,10 +1860,10 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
         </div>
 
         {scoreResult && (
-          <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+          <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-2">Laatste beoordeling</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Laatste beoordeling</p>
                 <StatusBadge status={scoreResult.status} />
               </div>
               <button
@@ -1653,12 +1878,12 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
 
         <div className="space-y-6">
           <div className="mb-6">
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">Nieuwe Beoordeling</h3>
-            <p className="text-gray-600">Beantwoord de vragen volgens de criteria uit het Deliveroo-arrest van de Hoge Raad (24 november 2023)</p>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Nieuwe Beoordeling</h3>
+            <p className="text-gray-600 dark:text-gray-400">Beantwoord de vragen volgens de criteria uit het Deliveroo-arrest, Groen/Schoevers-arrest en Helpling-arrest</p>
           </div>
           {questions.map((question: any) => (
-            <div key={question.id} className="p-6 bg-gray-50 rounded-xl border border-gray-200">
-              <label className="block text-gray-900 font-semibold mb-4">{question.prompt}</label>
+            <div key={question.id} className="p-6 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
+              <label className="block text-gray-900 dark:text-white font-semibold mb-4">{question.prompt}</label>
               {question.type === 'BOOLEAN' ? (
                 <div className="flex gap-4">
                   <button
@@ -1686,7 +1911,7 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
                 <textarea
                   value={answers[question.key] || ''}
                   onChange={(e) => handleAnswerChange(question.key, e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                   rows={4}
                   placeholder="Voer hier uw antwoord in..."
                 />
