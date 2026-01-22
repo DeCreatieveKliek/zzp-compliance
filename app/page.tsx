@@ -1105,47 +1105,53 @@ const PaymentView = ({ onPaymentComplete }: any) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-white dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center p-6">
       <div className="max-w-2xl w-full">
-        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 md:p-12 border border-gray-100 dark:border-gray-700">
+        <div className="card-zeno p-8 md:p-12">
           {/* Header */}
-          <div className="text-center mb-8">
-            <div className="inline-block p-4 bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 rounded-2xl mb-6">
-              <Shield className="w-16 h-16 text-purple-600 dark:text-purple-400" />
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-[#7a00df] rounded-2xl mb-6">
+              <Shield className="w-12 h-12 text-white" />
             </div>
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-3">
+            <h1 className="text-4xl font-bold text-[#313131] dark:text-white mb-3">
               ZZP Compliance Toolkit
             </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-400">
+            <p className="text-lg text-[#313131]/70 dark:text-gray-400">
               Professionele compliance checks voor ZZP'ers
             </p>
           </div>
 
           {/* Features */}
-          <div className="mb-8 space-y-4">
-            <div className="flex items-start gap-3 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
-              <CheckCircle className="w-6 h-6 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
+          <div className="mb-10 space-y-4">
+            <div className="flex items-start gap-4 p-5 bg-[#7a00df]/5 rounded-xl border border-[#7a00df]/10">
+              <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-[#00d084]/10 rounded-lg">
+                <CheckCircle className="w-6 h-6 text-[#00d084]" />
+              </div>
               <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white">Multi-arrest Beoordeling</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <h3 className="font-semibold text-[#313131] dark:text-white mb-1">Multi-arrest Beoordeling</h3>
+                <p className="text-sm text-[#313131]/60 dark:text-gray-400">
                   Gebaseerd op Deliveroo, Groen/Schoevers en Helpling arresten
                 </p>
               </div>
             </div>
-            <div className="flex items-start gap-3 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
-              <CheckCircle className="w-6 h-6 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
+            <div className="flex items-start gap-4 p-5 bg-[#7a00df]/5 rounded-xl border border-[#7a00df]/10">
+              <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-[#0693e3]/10 rounded-lg">
+                <CheckCircle className="w-6 h-6 text-[#0693e3]" />
+              </div>
               <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white">Automatische Risico-analyse</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <h3 className="font-semibold text-[#313131] dark:text-white mb-1">Automatische Risico-analyse</h3>
+                <p className="text-sm text-[#313131]/60 dark:text-gray-400">
                   Ontvang direct concrete aanbevelingen en advies
                 </p>
               </div>
             </div>
-            <div className="flex items-start gap-3 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
-              <CheckCircle className="w-6 h-6 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
+            <div className="flex items-start gap-4 p-5 bg-[#7a00df]/5 rounded-xl border border-[#7a00df]/10">
+              <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-[#7a00df]/10 rounded-lg">
+                <CheckCircle className="w-6 h-6 text-[#7a00df]" />
+              </div>
               <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white">Beheer Systeem</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <h3 className="font-semibold text-[#313131] dark:text-white mb-1">Beheer Systeem</h3>
+                <p className="text-sm text-[#313131]/60 dark:text-gray-400">
                   Volledige toolkit voor opdrachten, ZZP'ers en organisaties
                 </p>
               </div>
@@ -1153,7 +1159,7 @@ const PaymentView = ({ onPaymentComplete }: any) => {
           </div>
 
           {/* Pricing */}
-          <div className="bg-gradient-to-br from-purple-600 to-violet-700 rounded-2xl p-8 mb-6 text-white">
+          <div className="bg-[#7a00df] rounded-2xl p-8 mb-6 text-white">
             <div className="text-center">
               <p className="text-sm opacity-90 mb-2">Eenmalige toegang</p>
               <div className="flex items-center justify-center gap-2 mb-2">
@@ -1167,11 +1173,7 @@ const PaymentView = ({ onPaymentComplete }: any) => {
           <button
             onClick={handleMolliePayment}
             disabled={isProcessing}
-            className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-200 mb-4 ${
-              isProcessing
-                ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-purple-600 to-violet-700 text-white hover:from-purple-700 hover:to-violet-800 shadow-lg shadow-purple-500/50 hover:scale-[1.02]'
-            }`}
+            className="btn-zeno-primary w-full py-4 text-lg mb-4 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-sm"
           >
             {isProcessing ? (
               <span className="flex items-center justify-center gap-2">
@@ -1187,18 +1189,18 @@ const PaymentView = ({ onPaymentComplete }: any) => {
           <div className="text-center">
             <button
               onClick={() => setShowDemo(!showDemo)}
-              className="text-sm text-purple-600 dark:text-purple-400 hover:underline"
+              className="text-sm text-[#7a00df] dark:text-[#7a00df] hover:underline font-medium"
             >
               {showDemo ? 'Verberg demo optie' : 'Demo toegang (alleen voor ontwikkeling)'}
             </button>
             {showDemo && (
-              <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl">
-                <p className="text-sm text-yellow-800 dark:text-yellow-200 mb-3">
+              <div className="mt-4 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl">
+                <p className="text-sm text-[#313131] dark:text-gray-300 mb-3">
                   <strong>Let op:</strong> Dit is alleen voor demo doeleinden
                 </p>
                 <button
                   onClick={handleDemoAccess}
-                  className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 font-semibold transition-all"
+                  className="px-5 py-2.5 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 font-semibold transition-all"
                 >
                   Demo Toegang Activeren
                 </button>
@@ -1208,7 +1210,7 @@ const PaymentView = ({ onPaymentComplete }: any) => {
 
           {/* Info Footer */}
           <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex items-center justify-center gap-2 text-sm text-[#313131]/60 dark:text-gray-400">
               <Shield className="w-4 h-4" />
               <p>Veilige betaling via Mollie • SSL versleuteld</p>
             </div>
@@ -1217,8 +1219,8 @@ const PaymentView = ({ onPaymentComplete }: any) => {
 
         {/* ZenoZorg branding */}
         <div className="text-center mt-6">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Een product van <span className="font-semibold text-purple-600 dark:text-purple-400">ZenoZorg</span>
+          <p className="text-sm text-[#313131]/60 dark:text-gray-400">
+            Een product van <span className="font-semibold text-[#7a00df]">ZenoZorg</span>
           </p>
         </div>
       </div>
@@ -1370,112 +1372,115 @@ const Dashboard = ({ data, onNavigate, darkMode }: any) => {
   const pendingCount = engagementsWithScores.filter((e: any) => !e.latestScore).length;
 
   return (
-    <div className="space-y-6">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h2>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">Overzicht van uw ZZP compliance status</p>
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-[#313131] dark:text-white mb-2">Dashboard</h1>
+        <p className="text-[#313131]/70 dark:text-gray-400">Overzicht van uw ZZP compliance status</p>
       </div>
 
-      {/* Key Metrics */}
+      {/* Key Metrics - ZenoZorg Style */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 border border-gray-100 dark:border-gray-700">
+        <div className="card-zeno group">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 font-semibold">Totaal Opdrachten</p>
-              <p className="text-4xl font-bold text-gray-900 dark:text-white mt-2">{totalEngagements}</p>
+              <p className="text-sm text-[#313131]/60 dark:text-gray-400 font-medium mb-2">Totaal Opdrachten</p>
+              <p className="text-4xl font-bold text-[#313131] dark:text-white">{totalEngagements}</p>
             </div>
-            <div className="p-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl">
-              <FileText className="w-8 h-8 text-white" />
+            <div className="w-14 h-14 flex items-center justify-center bg-[#7a00df]/10 rounded-lg group-hover:bg-[#7a00df]/20 transition-colors">
+              <FileText className="w-7 h-7 text-[#7a00df]" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 border border-gray-100 dark:border-gray-700">
+        <div className="card-zeno group">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 font-semibold">ZZP&apos;ers</p>
-              <p className="text-4xl font-bold text-gray-900 dark:text-white mt-2">{totalContractors}</p>
+              <p className="text-sm text-[#313131]/60 dark:text-gray-400 font-medium mb-2">ZZP&apos;ers</p>
+              <p className="text-4xl font-bold text-[#313131] dark:text-white">{totalContractors}</p>
             </div>
-            <div className="p-4 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl">
-              <Users className="w-8 h-8 text-white" />
+            <div className="w-14 h-14 flex items-center justify-center bg-[#0693e3]/10 rounded-lg group-hover:bg-[#0693e3]/20 transition-colors">
+              <Users className="w-7 h-7 text-[#0693e3]" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 border border-gray-100 dark:border-gray-700">
+        <div className="card-zeno group">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 font-semibold">Organisaties</p>
-              <p className="text-4xl font-bold text-gray-900 dark:text-white mt-2">{totalOrganizations}</p>
+              <p className="text-sm text-[#313131]/60 dark:text-gray-400 font-medium mb-2">Organisaties</p>
+              <p className="text-4xl font-bold text-[#313131] dark:text-white">{totalOrganizations}</p>
             </div>
-            <div className="p-4 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl">
-              <Building className="w-8 h-8 text-white" />
+            <div className="w-14 h-14 flex items-center justify-center bg-[#00d084]/10 rounded-lg group-hover:bg-[#00d084]/20 transition-colors">
+              <Building className="w-7 h-7 text-[#00d084]" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 border border-gray-100 dark:border-gray-700">
+        <div className="card-zeno group">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 font-semibold">Checks Uitgevoerd</p>
-              <p className="text-4xl font-bold text-gray-900 dark:text-white mt-2">{totalChecks}</p>
+              <p className="text-sm text-[#313131]/60 dark:text-gray-400 font-medium mb-2">Checks Uitgevoerd</p>
+              <p className="text-4xl font-bold text-[#313131] dark:text-white">{totalChecks}</p>
             </div>
-            <div className="p-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl">
-              <Activity className="w-8 h-8 text-white" />
+            <div className="w-14 h-14 flex items-center justify-center bg-[#7a00df]/10 rounded-lg group-hover:bg-[#7a00df]/20 transition-colors">
+              <Activity className="w-7 h-7 text-[#7a00df]" />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Compliance Status Overview */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
-        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-          <BarChart3 className="w-6 h-6" />
-          Compliance Status Overzicht
-        </h3>
+      {/* Compliance Status Overview - ZenoZorg Style */}
+      <div className="card-zeno">
+        <h2 className="text-2xl font-bold text-[#313131] dark:text-white mb-6 flex items-center gap-3">
+          <div className="w-10 h-10 flex items-center justify-center bg-[#7a00df]/10 rounded-lg">
+            <BarChart3 className="w-5 h-5 text-[#7a00df]" />
+          </div>
+          <span>Compliance Status Overzicht</span>
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <button
             onClick={() => { onNavigate('engagements'); (window as any).statusFilter = 'GOEDGEKEURD'; }}
-            className="p-6 bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border-2 border-green-200 dark:border-green-800 hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer text-left"
+            className="p-6 bg-[#00d084]/5 hover:bg-[#00d084]/10 rounded-lg border border-[#00d084]/20 hover:border-[#00d084]/40 transition-all group text-left"
           >
-            <div className="flex items-center justify-between mb-2">
-              <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
-              <p className="text-3xl font-bold text-green-900 dark:text-green-100">{approvedCount}</p>
+            <div className="flex items-center justify-between mb-3">
+              <CheckCircle className="w-8 h-8 text-[#00d084]" />
+              <p className="text-3xl font-bold text-[#313131] dark:text-white">{approvedCount}</p>
             </div>
-            <p className="text-sm font-semibold text-green-800 dark:text-green-300">Goedgekeurd</p>
+            <p className="text-sm font-semibold text-[#313131]/80 dark:text-gray-300">Goedgekeurd</p>
           </button>
 
           <button
             onClick={() => { onNavigate('engagements'); (window as any).statusFilter = 'TER_BEOORDELING'; }}
-            className="p-6 bg-gradient-to-br from-orange-50 to-amber-100 dark:from-orange-900/20 dark:to-amber-900/20 rounded-xl border-2 border-orange-200 dark:border-orange-800 hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer text-left"
+            className="p-6 bg-orange-500/5 hover:bg-orange-500/10 rounded-lg border border-orange-500/20 hover:border-orange-500/40 transition-all group text-left"
           >
-            <div className="flex items-center justify-between mb-2">
-              <AlertTriangle className="w-8 h-8 text-orange-600 dark:text-orange-400" />
-              <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">{warningCount}</p>
+            <div className="flex items-center justify-between mb-3">
+              <AlertTriangle className="w-8 h-8 text-orange-600" />
+              <p className="text-3xl font-bold text-[#313131] dark:text-white">{warningCount}</p>
             </div>
-            <p className="text-sm font-semibold text-orange-800 dark:text-orange-300">Ter Beoordeling</p>
+            <p className="text-sm font-semibold text-[#313131]/80 dark:text-gray-300">Ter Beoordeling</p>
           </button>
 
           <button
             onClick={() => { onNavigate('engagements'); (window as any).statusFilter = 'AFGEKEURD'; }}
-            className="p-6 bg-gradient-to-br from-red-50 to-rose-100 dark:from-red-900/20 dark:to-rose-900/20 rounded-xl border-2 border-red-200 dark:border-red-800 hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer text-left"
+            className="p-6 bg-red-500/5 hover:bg-red-500/10 rounded-lg border border-red-500/20 hover:border-red-500/40 transition-all group text-left"
           >
-            <div className="flex items-center justify-between mb-2">
-              <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
-              <p className="text-3xl font-bold text-red-900 dark:text-red-100">{rejectedCount}</p>
+            <div className="flex items-center justify-between mb-3">
+              <AlertCircle className="w-8 h-8 text-red-600" />
+              <p className="text-3xl font-bold text-[#313131] dark:text-white">{rejectedCount}</p>
             </div>
-            <p className="text-sm font-semibold text-red-800 dark:text-red-300">Afgekeurd</p>
+            <p className="text-sm font-semibold text-[#313131]/80 dark:text-gray-300">Afgekeurd</p>
           </button>
 
           <button
             onClick={() => { onNavigate('engagements'); (window as any).statusFilter = 'PLANNED'; }}
-            className="p-6 bg-gradient-to-br from-gray-50 to-slate-100 dark:from-gray-700 dark:to-slate-700 rounded-xl border-2 border-gray-200 dark:border-gray-600 hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer text-left"
+            className="p-6 bg-[#313131]/5 hover:bg-[#313131]/10 rounded-lg border border-[#313131]/20 hover:border-[#313131]/40 transition-all group text-left"
           >
-            <div className="flex items-center justify-between mb-2">
-              <Clock className="w-8 h-8 text-gray-600 dark:text-gray-400" />
-              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{pendingCount}</p>
+            <div className="flex items-center justify-between mb-3">
+              <Clock className="w-8 h-8 text-[#313131]/60" />
+              <p className="text-3xl font-bold text-[#313131] dark:text-white">{pendingCount}</p>
             </div>
-            <p className="text-sm font-semibold text-gray-800 dark:text-gray-300">Nog Te Beoordelen</p>
+            <p className="text-sm font-semibold text-[#313131]/80 dark:text-gray-300">Nog Te Beoordelen</p>
           </button>
         </div>
       </div>
@@ -1483,34 +1488,49 @@ const Dashboard = ({ data, onNavigate, darkMode }: any) => {
       {/* Recent Activity */}
       <RecentActivity data={data} darkMode={darkMode} />
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <button
-          onClick={() => onNavigate('engagements')}
-          className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 text-center"
-        >
-          <FileText className="w-8 h-8 mb-3" />
-          <p className="font-bold text-lg">Bekijk Opdrachten</p>
-          <p className="text-sm opacity-90 mt-1">Beheer al uw ZZP-opdrachten</p>
-        </button>
+      {/* Quick Actions - ZenoZorg Style */}
+      <div>
+        <h2 className="text-2xl font-bold text-[#313131] dark:text-white mb-6">Snelle Acties</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <button
+            onClick={() => onNavigate('engagements')}
+            className="group card-zeno hover:border-[#7a00df]/40 transition-all"
+          >
+            <div className="flex flex-col items-center text-center py-4">
+              <div className="w-16 h-16 flex items-center justify-center bg-[#7a00df]/10 group-hover:bg-[#7a00df]/20 rounded-xl mb-4 transition-colors">
+                <FileText className="w-8 h-8 text-[#7a00df]" />
+              </div>
+              <p className="font-bold text-lg text-[#313131] dark:text-white mb-2">Bekijk Opdrachten</p>
+              <p className="text-sm text-[#313131]/60 dark:text-gray-400">Beheer al uw ZZP-opdrachten</p>
+            </div>
+          </button>
 
-        <button
-          onClick={() => onNavigate('people')}
-          className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 text-center"
-        >
-          <Users className="w-8 h-8 mb-3" />
-          <p className="font-bold text-lg">Beheer ZZP&apos;ers</p>
-          <p className="text-sm opacity-90 mt-1">Organisaties en freelancers</p>
-        </button>
+          <button
+            onClick={() => onNavigate('people')}
+            className="group card-zeno hover:border-[#0693e3]/40 transition-all"
+          >
+            <div className="flex flex-col items-center text-center py-4">
+              <div className="w-16 h-16 flex items-center justify-center bg-[#0693e3]/10 group-hover:bg-[#0693e3]/20 rounded-xl mb-4 transition-colors">
+                <Users className="w-8 h-8 text-[#0693e3]" />
+              </div>
+              <p className="font-bold text-lg text-[#313131] dark:text-white mb-2">Beheer ZZP&apos;ers</p>
+              <p className="text-sm text-[#313131]/60 dark:text-gray-400">Organisaties en freelancers</p>
+            </div>
+          </button>
 
-        <button
-          onClick={() => onNavigate('engagements')}
-          className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 text-center"
-        >
-          <Plus className="w-8 h-8 mb-3" />
-          <p className="font-bold text-lg">Nieuwe Check</p>
-          <p className="text-sm opacity-90 mt-1">Start een nieuwe beoordeling</p>
-        </button>
+          <button
+            onClick={() => onNavigate('engagements')}
+            className="group card-zeno hover:border-[#00d084]/40 transition-all"
+          >
+            <div className="flex flex-col items-center text-center py-4">
+              <div className="w-16 h-16 flex items-center justify-center bg-[#00d084]/10 group-hover:bg-[#00d084]/20 rounded-xl mb-4 transition-colors">
+                <Plus className="w-8 h-8 text-[#00d084]" />
+              </div>
+              <p className="font-bold text-lg text-[#313131] dark:text-white mb-2">Nieuwe Check</p>
+              <p className="text-sm text-[#313131]/60 dark:text-gray-400">Start een nieuwe beoordeling</p>
+            </div>
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -3231,88 +3251,100 @@ export default function ZZPComplianceApp() {
   }
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-white'}`}>
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-100 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-8 py-5">
-          <div className="flex items-center justify-between">
+    <div className={`min-h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-[#fafafa]'}`}>
+      {/* Professional ZenoZorg Header */}
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            {/* Logo & Brand */}
             <button
               onClick={() => { setCurrentView('dashboard'); setSelectedEngagement(null); }}
-              className="flex items-center gap-3 hover:opacity-80 transition-opacity duration-200 group"
-              title="ZZP Compliance Toolkit - Ga naar Dashboard"
+              className="flex items-center gap-3 hover:opacity-90 transition-opacity group"
+              title="ZZP Compliance Toolkit"
             >
-              <div className="p-2.5 bg-gradient-to-br from-purple-600 to-violet-700 rounded-xl shadow-md shadow-purple-500/30 group-hover:scale-105 transition-transform duration-200">
-                <Shield className="w-7 h-7 text-white" />
+              <div className="flex items-center justify-center w-12 h-12 bg-[#7a00df] rounded-lg shadow-sm group-hover:shadow-md transition-all">
+                <Shield className="w-6 h-6 text-white" />
               </div>
-              <div className="hidden md:block">
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">ZZP Compliance</h1>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Toolkit voor ZZP'ers</p>
+              <div className="hidden md:flex flex-col">
+                <span className="text-lg font-bold text-[#313131] dark:text-white leading-none">ZZP Compliance</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">Toolkit voor ZZP'ers</span>
               </div>
             </button>
-            <div className="flex items-center gap-4">
-              <nav className="flex gap-2">
+
+            {/* Navigation & Actions */}
+            <div className="flex items-center gap-6">
+              <nav className="hidden lg:flex items-center gap-1">
                 <button
                   onClick={() => { setCurrentView('dashboard'); setSelectedEngagement(null); }}
-                  className={`px-5 py-2.5 rounded-lg font-semibold transition-all duration-200 flex items-center gap-2 ${
+                  className={`px-4 py-2 rounded-md font-medium text-sm transition-all ${
                     currentView === 'dashboard'
-                      ? 'bg-purple-600 text-white shadow-md shadow-purple-500/30'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-gray-700'
+                      ? 'bg-[#7a00df] text-white'
+                      : 'text-[#313131] dark:text-gray-300 hover:bg-[#eeeeee] dark:hover:bg-gray-700'
                   }`}
                 >
-                  <Home className="w-4 h-4" />
-                  Dashboard
+                  <div className="flex items-center gap-2">
+                    <Home className="w-4 h-4" />
+                    <span>Dashboard</span>
+                  </div>
                 </button>
                 <button
                   onClick={() => { setCurrentView('engagements'); setSelectedEngagement(null); }}
-                  className={`px-5 py-2.5 rounded-lg font-semibold transition-all duration-200 ${
+                  className={`px-4 py-2 rounded-md font-medium text-sm transition-all ${
                     currentView === 'engagements'
-                      ? 'bg-purple-600 text-white shadow-md shadow-purple-500/30'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-gray-700'
+                      ? 'bg-[#7a00df] text-white'
+                      : 'text-[#313131] dark:text-gray-300 hover:bg-[#eeeeee] dark:hover:bg-gray-700'
                   }`}
                 >
                   Opdrachten
                 </button>
                 <button
                   onClick={() => { setCurrentView('people'); setSelectedEngagement(null); }}
-                  className={`px-5 py-2.5 rounded-lg font-semibold transition-all duration-200 ${
+                  className={`px-4 py-2 rounded-md font-medium text-sm transition-all ${
                     currentView === 'people' || currentView === 'contractors' || currentView === 'organizations'
-                      ? 'bg-purple-600 text-white shadow-md shadow-purple-500/30'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-gray-700'
+                      ? 'bg-[#7a00df] text-white'
+                      : 'text-[#313131] dark:text-gray-300 hover:bg-[#eeeeee] dark:hover:bg-gray-700'
                   }`}
                 >
                   Beheer
                 </button>
                 <button
                   onClick={() => { setCurrentView('archive'); setSelectedEngagement(null); }}
-                  className={`px-5 py-2.5 rounded-lg font-semibold transition-all duration-200 flex items-center gap-2 ${
+                  className={`px-4 py-2 rounded-md font-medium text-sm transition-all ${
                     currentView === 'archive'
-                      ? 'bg-purple-600 text-white shadow-md shadow-purple-500/30'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-gray-700'
+                      ? 'bg-[#7a00df] text-white'
+                      : 'text-[#313131] dark:text-gray-300 hover:bg-[#eeeeee] dark:hover:bg-gray-700'
                   }`}
                 >
-                  <Archive className="w-4 h-4" />
-                  Archief
+                  <div className="flex items-center gap-2">
+                    <Archive className="w-4 h-4" />
+                    <span>Archief</span>
+                  </div>
                 </button>
                 <button
                   onClick={() => { setCurrentView('settings'); setSelectedEngagement(null); }}
-                  className={`px-5 py-2.5 rounded-lg font-semibold transition-all duration-200 flex items-center gap-2 ${
+                  className={`px-4 py-2 rounded-md font-medium text-sm transition-all ${
                     currentView === 'settings'
-                      ? 'bg-purple-600 text-white shadow-md shadow-purple-500/30'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-gray-700'
+                      ? 'bg-[#7a00df] text-white'
+                      : 'text-[#313131] dark:text-gray-300 hover:bg-[#eeeeee] dark:hover:bg-gray-700'
                   }`}
                 >
-                  <Shield className="w-4 h-4" />
-                  Instellingen
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4" />
+                    <span>Instellingen</span>
+                  </div>
                 </button>
               </nav>
+
+              {/* Dark Mode Toggle */}
               <button
                 onClick={toggleDarkMode}
-                className="p-2.5 rounded-xl bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-gray-700 dark:to-gray-800 border-2 border-purple-200 dark:border-gray-600 hover:from-purple-200 hover:to-indigo-200 dark:hover:bg-gray-600 transition-all duration-200 shadow-sm hover:shadow-md"
+                className="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
                 title={darkMode ? 'Schakel naar light mode' : 'Schakel naar dark mode'}
               >
                 {darkMode ? (
                   <Sun className="w-5 h-5 text-yellow-400" />
                 ) : (
-                  <Moon className="w-5 h-5 text-purple-600" />
+                  <Moon className="w-5 h-5 text-[#7a00df]" />
                 )}
               </button>
             </div>
@@ -3320,7 +3352,8 @@ export default function ZZPComplianceApp() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
         {currentView === 'dashboard' && (
           <Dashboard data={data} onNavigate={setCurrentView} darkMode={darkMode} />
         )}

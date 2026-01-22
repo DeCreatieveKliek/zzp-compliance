@@ -1,3 +1,81 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ZenoZorg Design System */
+@layer base {
+  :root {
+    /* ZenoZorg Brand Colors */
+    --zeno-purple: #7a00df;
+    --zeno-cyan: #0693e3;
+    --zeno-green: #00d084;
+    --zeno-gray-light: #eeeeee;
+    --zeno-gray-dark: #313131;
+
+    /* Spacing System (gebaseerd op ZenoZorg) */
+    --spacing-xs: 0.44rem;
+    --spacing-sm: 0.67rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2.25rem;
+    --spacing-2xl: 3.38rem;
+    --spacing-3xl: 5.06rem;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Professional Headings */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer components {
+  /* ZenoZorg Button Style */
+  .btn-zeno-primary {
+    @apply bg-[#7a00df] hover:bg-[#6600c0] text-white font-semibold px-6 py-3 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md;
+  }
+
+  .btn-zeno-secondary {
+    @apply bg-white hover:bg-gray-50 text-[#7a00df] font-semibold px-6 py-3 rounded-lg border-2 border-[#7a00df] transition-all duration-200;
+  }
+
+  /* ZenoZorg Card Style */
+  .card-zeno {
+    @apply bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 p-6;
+  }
+
+  /* Professional Input */
+  .input-zeno {
+    @apply w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#7a00df] focus:ring-2 focus:ring-[#7a00df]/20 focus:outline-none transition-all duration-200;
+  }
+}
+
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #7a00df;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6600c0;
+}
