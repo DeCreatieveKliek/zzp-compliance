@@ -1079,6 +1079,153 @@ const AddEngagementModal = ({ onClose, onAdd, contractors, organizations }: any)
   );
 };
 
+// Payment View Component
+const PaymentView = ({ onPaymentComplete }: any) => {
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showDemo, setShowDemo] = useState(false);
+
+  const handleMolliePayment = () => {
+    setIsProcessing(true);
+
+    // Simulate Mollie payment redirect
+    setTimeout(() => {
+      // In een echte implementatie zou hier een redirect naar Mollie zijn
+      // Voor demo doeleinden simuleren we direct een succesvolle betaling
+      localStorage.setItem('zzp_payment_status', 'paid');
+      localStorage.setItem('zzp_payment_date', new Date().toISOString());
+      onPaymentComplete();
+      setIsProcessing(false);
+    }, 2000);
+  };
+
+  const handleDemoAccess = () => {
+    localStorage.setItem('zzp_payment_status', 'paid');
+    localStorage.setItem('zzp_payment_date', new Date().toISOString());
+    onPaymentComplete();
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center p-6">
+      <div className="max-w-2xl w-full">
+        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 md:p-12 border border-gray-100 dark:border-gray-700">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="inline-block p-4 bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 rounded-2xl mb-6">
+              <Shield className="w-16 h-16 text-purple-600 dark:text-purple-400" />
+            </div>
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-3">
+              ZZP Compliance Toolkit
+            </h1>
+            <p className="text-lg text-gray-600 dark:text-gray-400">
+              Professionele compliance checks voor ZZP'ers
+            </p>
+          </div>
+
+          {/* Features */}
+          <div className="mb-8 space-y-4">
+            <div className="flex items-start gap-3 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+              <CheckCircle className="w-6 h-6 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-white">Multi-arrest Beoordeling</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Gebaseerd op Deliveroo, Groen/Schoevers en Helpling arresten
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+              <CheckCircle className="w-6 h-6 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-white">Automatische Risico-analyse</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Ontvang direct concrete aanbevelingen en advies
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+              <CheckCircle className="w-6 h-6 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-white">Beheer Systeem</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Volledige toolkit voor opdrachten, ZZP'ers en organisaties
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Pricing */}
+          <div className="bg-gradient-to-br from-purple-600 to-violet-700 rounded-2xl p-8 mb-6 text-white">
+            <div className="text-center">
+              <p className="text-sm opacity-90 mb-2">Eenmalige toegang</p>
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <span className="text-6xl font-bold">€1</span>
+              </div>
+              <p className="text-sm opacity-90">Veilig betalen via Mollie</p>
+            </div>
+          </div>
+
+          {/* Payment Button */}
+          <button
+            onClick={handleMolliePayment}
+            disabled={isProcessing}
+            className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-200 mb-4 ${
+              isProcessing
+                ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed'
+                : 'bg-gradient-to-r from-purple-600 to-violet-700 text-white hover:from-purple-700 hover:to-violet-800 shadow-lg shadow-purple-500/50 hover:scale-[1.02]'
+            }`}
+          >
+            {isProcessing ? (
+              <span className="flex items-center justify-center gap-2">
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Verwerken...
+              </span>
+            ) : (
+              '💳 Betaal €1 via Mollie'
+            )}
+          </button>
+
+          {/* Demo Access */}
+          <div className="text-center">
+            <button
+              onClick={() => setShowDemo(!showDemo)}
+              className="text-sm text-purple-600 dark:text-purple-400 hover:underline"
+            >
+              {showDemo ? 'Verberg demo optie' : 'Demo toegang (alleen voor ontwikkeling)'}
+            </button>
+            {showDemo && (
+              <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl">
+                <p className="text-sm text-yellow-800 dark:text-yellow-200 mb-3">
+                  <strong>Let op:</strong> Dit is alleen voor demo doeleinden
+                </p>
+                <button
+                  onClick={handleDemoAccess}
+                  className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 font-semibold transition-all"
+                >
+                  Demo Toegang Activeren
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Info Footer */}
+          <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <Shield className="w-4 h-4" />
+              <p>Veilige betaling via Mollie • SSL versleuteld</p>
+            </div>
+          </div>
+        </div>
+
+        {/* ZenoZorg branding */}
+        <div className="text-center mt-6">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Een product van <span className="font-semibold text-purple-600 dark:text-purple-400">ZenoZorg</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Recent Activity Component
 const RecentActivity = ({ data, darkMode }: any) => {
   const recentEvents = (data.auditEvents || []).slice(0, 10);
@@ -1340,7 +1487,7 @@ const Dashboard = ({ data, onNavigate, darkMode }: any) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <button
           onClick={() => onNavigate('engagements')}
-          className="p-6 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
+          className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 text-center"
         >
           <FileText className="w-8 h-8 mb-3" />
           <p className="font-bold text-lg">Bekijk Opdrachten</p>
@@ -1349,7 +1496,7 @@ const Dashboard = ({ data, onNavigate, darkMode }: any) => {
 
         <button
           onClick={() => onNavigate('people')}
-          className="p-6 bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
+          className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 text-center"
         >
           <Users className="w-8 h-8 mb-3" />
           <p className="font-bold text-lg">Beheer ZZP&apos;ers</p>
@@ -1358,7 +1505,7 @@ const Dashboard = ({ data, onNavigate, darkMode }: any) => {
 
         <button
           onClick={() => onNavigate('engagements')}
-          className="p-6 bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
+          className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 text-center"
         >
           <Plus className="w-8 h-8 mb-3" />
           <p className="font-bold text-lg">Nieuwe Check</p>
@@ -1370,24 +1517,130 @@ const Dashboard = ({ data, onNavigate, darkMode }: any) => {
 };
 
 const SettingsView = ({ onReset }: any) => {
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loginPassword, setLoginPassword] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [resetPassword, setResetPassword] = useState('');
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [loginError, setLoginError] = useState('');
+
+  const SETTINGS_PASSWORD = 'admin2024';
+
+  const handleLogin = () => {
+    if (loginPassword === SETTINGS_PASSWORD) {
+      setIsLoggedIn(true);
+      setLoginError('');
+      setLoginPassword('');
+    } else {
+      setLoginError('Onjuist wachtwoord! Probeer opnieuw.');
+    }
+  };
 
   const handleReset = () => {
-    if (password !== '123456789') {
-      alert('Onjuist wachtwoord!');
+    if (resetPassword !== '123456789') {
+      alert('Onjuist wachtwoord voor reset!');
       return;
     }
     if (confirm('Weet je ABSOLUUT zeker dat je alle data wilt resetten? Dit kan niet ongedaan worden gemaakt.')) {
       onReset();
+      setIsLoggedIn(false);
     }
   };
 
+  // Login scherm
+  if (!isLoggedIn) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Instellingen</h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">Login vereist voor toegang</p>
+        </div>
+
+        <div className="max-w-md mx-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-center mb-6">
+              <div className="p-4 bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 rounded-2xl">
+                <Shield className="w-12 h-12 text-purple-600 dark:text-purple-400" />
+              </div>
+            </div>
+
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-2">
+              Beveiligde Toegang
+            </h3>
+            <p className="text-center text-gray-600 dark:text-gray-400 mb-6">
+              Voer uw wachtwoord in om toegang te krijgen tot instellingen
+            </p>
+
+            {loginError && (
+              <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                <p className="text-sm text-red-600 dark:text-red-400 text-center">{loginError}</p>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Wachtwoord
+                </label>
+                <div className="relative">
+                  <input
+                    type={showLoginPassword ? 'text' : 'password'}
+                    value={loginPassword}
+                    onChange={(e) => {
+                      setLoginPassword(e.target.value);
+                      setLoginError('');
+                    }}
+                    onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                    className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                    placeholder="Voer wachtwoord in"
+                  />
+                </div>
+                <button
+                  onClick={() => setShowLoginPassword(!showLoginPassword)}
+                  className="text-sm text-purple-600 dark:text-purple-400 hover:underline mt-2"
+                >
+                  {showLoginPassword ? 'Verberg wachtwoord' : 'Toon wachtwoord'}
+                </button>
+              </div>
+
+              <button
+                onClick={handleLogin}
+                disabled={!loginPassword}
+                className={`w-full px-6 py-3 rounded-xl font-bold text-lg transition-all duration-200 ${
+                  loginPassword
+                    ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 shadow-lg shadow-purple-500/50 hover:scale-[1.02] cursor-pointer'
+                    : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                Inloggen
+              </button>
+            </div>
+
+            <div className="mt-6 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+              <p className="text-xs text-gray-600 dark:text-gray-400 text-center">
+                <strong>Standaard wachtwoord:</strong> admin2024
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Settings pagina (na login)
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Instellingen</h2>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">Systeeminstellingen en gevaarlijke acties</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Instellingen</h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">Systeeminstellingen en gevaarlijke acties</p>
+        </div>
+        <button
+          onClick={() => setIsLoggedIn(false)}
+          className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 font-semibold transition-all"
+        >
+          Uitloggen
+        </button>
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
@@ -1416,30 +1669,30 @@ const SettingsView = ({ onReset }: any) => {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-semibold text-red-900 dark:text-red-100 mb-2">
-                Wachtwoord vereist:
+                Reset wachtwoord vereist:
               </label>
               <div className="relative">
                 <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  type={showResetPassword ? 'text' : 'password'}
+                  value={resetPassword}
+                  onChange={(e) => setResetPassword(e.target.value)}
                   className="w-full px-4 py-3 border-2 border-red-300 dark:border-red-700 dark:bg-gray-800 dark:text-white rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
                   placeholder="Voer wachtwoord in (123456789)"
                 />
               </div>
               <button
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={() => setShowResetPassword(!showResetPassword)}
                 className="text-sm text-red-600 dark:text-red-400 hover:underline mt-2"
               >
-                {showPassword ? 'Verberg wachtwoord' : 'Toon wachtwoord'}
+                {showResetPassword ? 'Verberg wachtwoord' : 'Toon wachtwoord'}
               </button>
             </div>
 
             <button
               onClick={handleReset}
-              disabled={!password}
+              disabled={!resetPassword}
               className={`w-full px-6 py-4 rounded-xl font-bold text-lg transition-all duration-200 ${
-                password
+                resetPassword
                   ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white hover:from-red-700 hover:to-rose-700 shadow-lg shadow-red-500/50 hover:scale-[1.02] cursor-pointer'
                   : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
               }`}
@@ -2815,15 +3068,25 @@ const createAuditEvent = (action: string, entityType: string, entityName: string
 export default function ZZPComplianceApp() {
   const [data, setData] = useState(initializeData);
   const [selectedEngagement, setSelectedEngagement] = useState<string | null>(null);
-  const [currentView, setCurrentView] = useState('dashboard');
+  const [currentView, setCurrentView] = useState('payment');
   const [showAddEngagement, setShowAddEngagement] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [isPaid, setIsPaid] = useState(false);
 
   useEffect(() => {
     const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    const paymentStatus = localStorage.getItem('zzp_payment_status') === 'paid';
+
     setDarkMode(savedDarkMode);
     if (savedDarkMode) {
       document.documentElement.classList.add('dark');
+    }
+
+    setIsPaid(paymentStatus);
+    if (paymentStatus) {
+      setCurrentView('dashboard');
+    } else {
+      setCurrentView('payment');
     }
   }, []);
 
@@ -2953,32 +3216,46 @@ export default function ZZPComplianceApp() {
     handleUpdate(newData);
   };
 
+  const handlePaymentComplete = () => {
+    setIsPaid(true);
+    setCurrentView('dashboard');
+  };
+
   const selectedEngagementData = selectedEngagement
     ? data.engagements.find((e: any) => e.id === selectedEngagement)
     : null;
 
+  // Payment wall - show payment screen if not paid
+  if (!isPaid) {
+    return <PaymentView onPaymentComplete={handlePaymentComplete} />;
+  }
+
   return (
-    <div className={`min-h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50'}`}>
-      <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg shadow-lg border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-6 py-6">
+    <div className={`min-h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-white'}`}>
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-100 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-8 py-5">
           <div className="flex items-center justify-between">
             <button
               onClick={() => { setCurrentView('dashboard'); setSelectedEngagement(null); }}
-              className="hover:opacity-80 transition-opacity duration-200"
-              title="ZZP Compliance - Ga naar Dashboard"
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity duration-200 group"
+              title="ZZP Compliance Toolkit - Ga naar Dashboard"
             >
-              <div className="p-3 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl shadow-lg shadow-blue-500/50 hover:scale-110 transition-transform duration-200">
-                <Shield className="w-8 h-8 text-white" />
+              <div className="p-2.5 bg-gradient-to-br from-purple-600 to-violet-700 rounded-xl shadow-md shadow-purple-500/30 group-hover:scale-105 transition-transform duration-200">
+                <Shield className="w-7 h-7 text-white" />
+              </div>
+              <div className="hidden md:block">
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">ZZP Compliance</h1>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Toolkit voor ZZP'ers</p>
               </div>
             </button>
             <div className="flex items-center gap-4">
               <nav className="flex gap-2">
                 <button
                   onClick={() => { setCurrentView('dashboard'); setSelectedEngagement(null); }}
-                  className={`px-6 py-2 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2 ${
+                  className={`px-5 py-2.5 rounded-lg font-semibold transition-all duration-200 flex items-center gap-2 ${
                     currentView === 'dashboard'
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      ? 'bg-purple-600 text-white shadow-md shadow-purple-500/30'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-gray-700'
                   }`}
                 >
                   <Home className="w-4 h-4" />
@@ -2986,30 +3263,30 @@ export default function ZZPComplianceApp() {
                 </button>
                 <button
                   onClick={() => { setCurrentView('engagements'); setSelectedEngagement(null); }}
-                  className={`px-6 py-2 rounded-xl font-semibold transition-all duration-200 ${
+                  className={`px-5 py-2.5 rounded-lg font-semibold transition-all duration-200 ${
                     currentView === 'engagements'
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      ? 'bg-purple-600 text-white shadow-md shadow-purple-500/30'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-gray-700'
                   }`}
                 >
                   Opdrachten
                 </button>
                 <button
                   onClick={() => { setCurrentView('people'); setSelectedEngagement(null); }}
-                  className={`px-6 py-2 rounded-xl font-semibold transition-all duration-200 ${
-                    currentView === 'people'
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  className={`px-5 py-2.5 rounded-lg font-semibold transition-all duration-200 ${
+                    currentView === 'people' || currentView === 'contractors' || currentView === 'organizations'
+                      ? 'bg-purple-600 text-white shadow-md shadow-purple-500/30'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-gray-700'
                   }`}
                 >
                   Beheer
                 </button>
                 <button
                   onClick={() => { setCurrentView('archive'); setSelectedEngagement(null); }}
-                  className={`px-6 py-2 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2 ${
+                  className={`px-5 py-2.5 rounded-lg font-semibold transition-all duration-200 flex items-center gap-2 ${
                     currentView === 'archive'
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      ? 'bg-purple-600 text-white shadow-md shadow-purple-500/30'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-gray-700'
                   }`}
                 >
                   <Archive className="w-4 h-4" />
@@ -3017,10 +3294,10 @@ export default function ZZPComplianceApp() {
                 </button>
                 <button
                   onClick={() => { setCurrentView('settings'); setSelectedEngagement(null); }}
-                  className={`px-6 py-2 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2 ${
+                  className={`px-5 py-2.5 rounded-lg font-semibold transition-all duration-200 flex items-center gap-2 ${
                     currentView === 'settings'
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      ? 'bg-purple-600 text-white shadow-md shadow-purple-500/30'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-gray-700'
                   }`}
                 >
                   <Shield className="w-4 h-4" />
@@ -3029,10 +3306,14 @@ export default function ZZPComplianceApp() {
               </nav>
               <button
                 onClick={toggleDarkMode}
-                className="p-2 rounded-xl border-2 border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
-                title={darkMode ? 'Light mode' : 'Dark mode'}
+                className="p-2.5 rounded-xl bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-gray-700 dark:to-gray-800 border-2 border-purple-200 dark:border-gray-600 hover:from-purple-200 hover:to-indigo-200 dark:hover:bg-gray-600 transition-all duration-200 shadow-sm hover:shadow-md"
+                title={darkMode ? 'Schakel naar light mode' : 'Schakel naar dark mode'}
               >
-                {darkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-gray-600" />}
+                {darkMode ? (
+                  <Sun className="w-5 h-5 text-yellow-400" />
+                ) : (
+                  <Moon className="w-5 h-5 text-purple-600" />
+                )}
               </button>
             </div>
           </div>
