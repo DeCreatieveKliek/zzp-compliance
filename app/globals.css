@@ -46,14 +46,14 @@
     @apply bg-white hover:bg-gray-50 text-[#7a00df] font-semibold px-6 py-3 rounded-lg border-2 border-[#7a00df] transition-all duration-200;
   }
 
-  /* ZenoZorg Card Style */
+  /* ZenoZorg Card Style - Fixed for proper light/dark mode */
   .card-zeno {
-    @apply bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 p-6;
+    @apply bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-200 p-6;
   }
 
   /* Professional Input */
   .input-zeno {
-    @apply w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-[#7a00df] focus:ring-2 focus:ring-[#7a00df]/20 focus:outline-none transition-all duration-200;
+    @apply w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-[#7a00df] focus:ring-2 focus:ring-[#7a00df]/20 focus:outline-none transition-all duration-200;
   }
 }
 
@@ -62,7 +62,7 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar - Light Mode */
 ::-webkit-scrollbar {
   width: 10px;
 }
@@ -78,4 +78,17 @@ html {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #6600c0;
+}
+
+/* Custom Scrollbar - Dark Mode */
+.dark ::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #7a00df;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #8b00ff;
 }

@@ -903,32 +903,32 @@ const AddOrganizationModal = ({ onClose, onAdd }: any) => {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md transform animate-in slide-in-from-bottom-4 duration-300">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-md transform animate-in slide-in-from-bottom-4 duration-300">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl">
             <Building className="w-6 h-6 text-white" />
           </div>
-          <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
             Nieuwe Organisatie
           </h3>
         </div>
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Naam *</label>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Naam *</label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+              className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500"
               placeholder="bijv. Acme Corp"
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Type *</label>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Type *</label>
             <select
               value={formData.type}
               onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+              className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500"
             >
               <option value="CLIENT">Opdrachtgever</option>
               <option value="SUPPLIER">Leverancier</option>
@@ -938,7 +938,7 @@ const AddOrganizationModal = ({ onClose, onAdd }: any) => {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 font-semibold transition-all duration-200 hover:scale-105"
+              className="flex-1 px-6 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 font-semibold transition-all duration-200 hover:scale-105 dark:text-white"
             >
               Annuleren
             </button>
@@ -980,23 +980,23 @@ const AddEngagementModal = ({ onClose, onAdd, contractors, organizations }: any)
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-2xl transform animate-in slide-in-from-bottom-4 duration-300 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-2xl transform animate-in slide-in-from-bottom-4 duration-300 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl">
             <Plus className="w-6 h-6 text-white" />
           </div>
-          <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
             Nieuwe Opdracht
           </h3>
         </div>
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">ZZP&apos;er *</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">ZZP&apos;er *</label>
               <select
                 value={formData.contractorId}
                 onChange={(e) => setFormData({ ...formData, contractorId: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
               >
                 <option value="">Selecteer ZZP&apos;er</option>
                 {contractors.map((c: any) => (
@@ -1005,11 +1005,11 @@ const AddEngagementModal = ({ onClose, onAdd, contractors, organizations }: any)
               </select>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Organisatie *</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Organisatie *</label>
               <select
                 value={formData.organizationId}
                 onChange={(e) => setFormData({ ...formData, organizationId: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
               >
                 <option value="">Selecteer organisatie</option>
                 {organizations.map((o: any) => (
@@ -1019,42 +1019,42 @@ const AddEngagementModal = ({ onClose, onAdd, contractors, organizations }: any)
             </div>
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Rol *</label>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Rol *</label>
             <input
               type="text"
               value={formData.roleTitle}
               onChange={(e) => setFormData({ ...formData, roleTitle: e.target.value })}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+              className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
               placeholder="bijv. Frontend Developer"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Startdatum *</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Startdatum *</label>
               <input
                 type="date"
                 value={formData.startDate}
                 onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Einddatum</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Einddatum</label>
               <input
                 type="date"
                 value={formData.endDate}
                 onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
               />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Uurtarief (€)</label>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Uurtarief (€)</label>
             <input
               type="number"
               value={formData.rateHourly}
               onChange={(e) => setFormData({ ...formData, rateHourly: e.target.value })}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+              className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
               placeholder="bijv. 85"
             />
           </div>
@@ -1062,7 +1062,7 @@ const AddEngagementModal = ({ onClose, onAdd, contractors, organizations }: any)
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 font-semibold transition-all duration-200 hover:scale-105"
+              className="flex-1 px-6 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 font-semibold transition-all duration-200 hover:scale-105 dark:text-white"
             >
               Annuleren
             </button>
@@ -1441,46 +1441,46 @@ const Dashboard = ({ data, onNavigate, darkMode }: any) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <button
             onClick={() => { onNavigate('engagements'); (window as any).statusFilter = 'GOEDGEKEURD'; }}
-            className="p-6 bg-[#00d084]/5 hover:bg-[#00d084]/10 rounded-lg border border-[#00d084]/20 hover:border-[#00d084]/40 transition-all group text-left"
+            className="p-6 bg-green-50 hover:bg-green-100 dark:bg-green-900/30 dark:hover:bg-green-900/40 rounded-lg border-2 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 transition-all group text-left"
           >
             <div className="flex items-center justify-between mb-3">
               <CheckCircle className="w-8 h-8 text-[#00d084]" />
               <p className="text-3xl font-bold text-[#313131] dark:text-white">{approvedCount}</p>
             </div>
-            <p className="text-sm font-semibold text-[#313131]/80 dark:text-gray-300">Goedgekeurd</p>
+            <p className="text-sm font-semibold text-[#313131] dark:text-gray-300">Goedgekeurd</p>
           </button>
 
           <button
             onClick={() => { onNavigate('engagements'); (window as any).statusFilter = 'TER_BEOORDELING'; }}
-            className="p-6 bg-orange-500/5 hover:bg-orange-500/10 rounded-lg border border-orange-500/20 hover:border-orange-500/40 transition-all group text-left"
+            className="p-6 bg-orange-50 hover:bg-orange-100 dark:bg-orange-900/30 dark:hover:bg-orange-900/40 rounded-lg border-2 border-orange-200 dark:border-orange-800 hover:border-orange-300 dark:hover:border-orange-700 transition-all group text-left"
           >
             <div className="flex items-center justify-between mb-3">
-              <AlertTriangle className="w-8 h-8 text-orange-600" />
+              <AlertTriangle className="w-8 h-8 text-orange-600 dark:text-orange-400" />
               <p className="text-3xl font-bold text-[#313131] dark:text-white">{warningCount}</p>
             </div>
-            <p className="text-sm font-semibold text-[#313131]/80 dark:text-gray-300">Ter Beoordeling</p>
+            <p className="text-sm font-semibold text-[#313131] dark:text-gray-300">Ter Beoordeling</p>
           </button>
 
           <button
             onClick={() => { onNavigate('engagements'); (window as any).statusFilter = 'AFGEKEURD'; }}
-            className="p-6 bg-red-500/5 hover:bg-red-500/10 rounded-lg border border-red-500/20 hover:border-red-500/40 transition-all group text-left"
+            className="p-6 bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/40 rounded-lg border-2 border-red-200 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700 transition-all group text-left"
           >
             <div className="flex items-center justify-between mb-3">
-              <AlertCircle className="w-8 h-8 text-red-600" />
+              <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
               <p className="text-3xl font-bold text-[#313131] dark:text-white">{rejectedCount}</p>
             </div>
-            <p className="text-sm font-semibold text-[#313131]/80 dark:text-gray-300">Afgekeurd</p>
+            <p className="text-sm font-semibold text-[#313131] dark:text-gray-300">Afgekeurd</p>
           </button>
 
           <button
             onClick={() => { onNavigate('engagements'); (window as any).statusFilter = 'PLANNED'; }}
-            className="p-6 bg-[#313131]/5 hover:bg-[#313131]/10 rounded-lg border border-[#313131]/20 hover:border-[#313131]/40 transition-all group text-left"
+            className="p-6 bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg border-2 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 transition-all group text-left"
           >
             <div className="flex items-center justify-between mb-3">
-              <Clock className="w-8 h-8 text-[#313131]/60" />
+              <Clock className="w-8 h-8 text-gray-600 dark:text-gray-400" />
               <p className="text-3xl font-bold text-[#313131] dark:text-white">{pendingCount}</p>
             </div>
-            <p className="text-sm font-semibold text-[#313131]/80 dark:text-gray-300">Nog Te Beoordelen</p>
+            <p className="text-sm font-semibold text-[#313131] dark:text-gray-300">Nog Te Beoordelen</p>
           </button>
         </div>
       </div>
