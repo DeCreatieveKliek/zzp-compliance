@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Calendar, AlertCircle, CheckCircle, AlertTriangle, Plus, Clock, Users, Building, UserPlus, Sparkles, Shield, TrendingUp } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Calendar, AlertCircle, CheckCircle, AlertTriangle, Plus, Clock, Users, Building, UserPlus, Sparkles, Shield, TrendingUp, Moon, Sun, Home, Trash2, BarChart3, Activity, FileText, X } from 'lucide-react';
 
 // Mock data store
 const DATA_VERSION = '3.0-deliveroo';
@@ -295,12 +295,74 @@ const computeScore = (answersByKey: any) => {
     verdict = 'Deze opdracht voldoet NIET aan de criteria uit het Deliveroo-arrest. Er zijn te veel indicatoren voor een dienstverband. Raadpleeg een juridisch adviseur.';
   }
 
+  // Generate advice
+  let adviceForContractor = '';
+  let adviceForClient = '';
+
+  if (status === 'AFGEKEURD' || status === 'TER_BEOORDELING') {
+    const contractorAdvice = [];
+    const clientAdvice = [];
+
+    if (answersByKey.substitution === false) {
+      contractorAdvice.push('Zorg dat u in uw contract vastlegt dat u een vervanger kunt sturen zonder voorafgaande toestemming.');
+      clientAdvice.push('Neem in het contract op dat de ZZP\'er een vervanger mag sturen zonder uw toestemming.');
+    }
+
+    if (answersByKey.instructions === true) {
+      contractorAdvice.push('Minimaliseer de instructies die u ontvangt. Werk op basis van eindresultaat in plaats van specifieke werkinstructies.');
+      clientAdvice.push('Geef geen gedetailleerde instructies over HOE het werk moet worden uitgevoerd. Focus op WAT het eindresultaat moet zijn.');
+    }
+
+    if (answersByKey.workSchedule === true) {
+      contractorAdvice.push('Bepaal zelf uw werkuren en -dagen. Maak dit expliciet in het contract.');
+      clientAdvice.push('Laat de ZZP\'er zelf bepalen wanneer en hoeveel uur er wordt gewerkt. Spreek alleen deadlines en beschikbaarheid af.');
+    }
+
+    if (answersByKey.fixedSalary === true) {
+      contractorAdvice.push('Factureer op basis van geleverde prestaties of declarabele uren, niet met een vast maandbedrag.');
+      clientAdvice.push('Betaal op basis van declarabele uren of resultaat, niet met een vast maandelijks bedrag.');
+    }
+
+    if (answersByKey.integration === true) {
+      contractorAdvice.push('Werk niet volledig geïntegreerd in de organisatie. Gebruik eigen werkplek en e-mail waar mogelijk.');
+      clientAdvice.push('Integreer de ZZP\'er niet volledig in uw organisatie. Geen vaste werkplek, bedrijfsemail of volledige systeemtoegang.');
+    }
+
+    if (answersByKey.ownMaterials === false) {
+      contractorAdvice.push('Gebruik waar mogelijk uw eigen apparatuur, tools en materialen.');
+      clientAdvice.push('Stimuleer dat de ZZP\'er eigen apparatuur en gereedschap gebruikt.');
+    }
+
+    if (answersByKey.financialRisk === false) {
+      contractorAdvice.push('Zorg voor ondernemersrisico door eigen investeringen te doen en meerdere opdrachtgevers te hebben.');
+      clientAdvice.push('De ZZP\'er moet ondernemersrisico lopen. Geen vaste kosten vergoeden die normaal bij een werkgever horen.');
+    }
+
+    if (answersByKey.ownClients === false) {
+      contractorAdvice.push('Ontwikkel actief uw klantenbestand en werk voor meerdere opdrachtgevers.');
+      clientAdvice.push('Eis niet dat de ZZP\'er exclusief voor u werkt. Moedig aan dat de ZZP\'er ook andere opdrachten aanneemt.');
+    }
+
+    adviceForContractor = contractorAdvice.length > 0
+      ? contractorAdvice.join('\n\n')
+      : 'Blijf werken zoals u nu doet. Uw situatie voldoet aan de criteria voor zelfstandigheid.';
+
+    adviceForClient = clientAdvice.length > 0
+      ? clientAdvice.join('\n\n')
+      : 'De huidige opdrachtstructuur voldoet aan de criteria. Handhaaf deze werkwijze.';
+  } else {
+    adviceForContractor = 'Deze opdracht voldoet aan alle criteria uit het Deliveroo-arrest. Blijf op dezelfde manier werken.';
+    adviceForClient = 'Deze samenwerking is goed gestructureerd volgens het Deliveroo-arrest. Handhaaf deze werkwijze.';
+  }
+
   return {
     totalScore,
     status,
     statusLabel,
     verdict,
     triggeredRules,
+    adviceForContractor,
+    adviceForClient,
     rulesetVersion: RULESET_VERSION
   };
 };
@@ -348,6 +410,104 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
+const DeleteConfirmModal = ({ onClose, onConfirm, itemName, itemType }: any) => {
+  const [confirmText, setConfirmText] = useState('');
+  const [sliderValue, setSliderValue] = useState(0);
+  const isConfirmed = confirmText.toLowerCase() === 'verwijderen' && sliderValue >= 95;
+
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-md transform animate-in slide-in-from-bottom-4 duration-300">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl">
+            <AlertCircle className="w-6 h-6 text-white" />
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Bevestig Verwijderen
+          </h3>
+        </div>
+
+        <div className="space-y-6">
+          <div className="p-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-xl">
+            <p className="text-red-900 dark:text-red-200 font-semibold">
+              Let op! Deze actie kan niet ongedaan worden gemaakt.
+            </p>
+            <p className="text-red-700 dark:text-red-300 text-sm mt-2">
+              Je staat op het punt om <span className="font-bold">{itemName}</span> ({itemType}) permanent te verwijderen.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Typ "verwijderen" om te bevestigen:
+            </label>
+            <input
+              type="text"
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+              placeholder="verwijderen"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+              Sleep de balk naar rechts om definitief te verwijderen:
+            </label>
+            <div className="relative">
+              <div className="h-14 bg-gray-200 dark:bg-gray-700 rounded-xl overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-red-500 to-rose-600 transition-all duration-100 flex items-center justify-center"
+                  style={{ width: `${sliderValue}%` }}
+                >
+                  {sliderValue >= 95 && (
+                    <CheckCircle className="w-6 h-6 text-white" />
+                  )}
+                </div>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={sliderValue}
+                onChange={(e) => setSliderValue(parseInt(e.target.value))}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <p className="text-sm font-bold text-gray-700 dark:text-gray-300">
+                  {sliderValue < 95 ? 'Sleep naar rechts →' : 'Gereed!'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-6 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 font-semibold transition-all duration-200 dark:text-white"
+            >
+              Annuleren
+            </button>
+            <button
+              type="button"
+              onClick={onConfirm}
+              disabled={!isConfirmed}
+              className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                isConfirmed
+                  ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white hover:from-red-700 hover:to-rose-700 shadow-lg shadow-red-500/50 cursor-pointer'
+                  : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              Verwijderen
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const AddContractorModal = ({ onClose, onAdd }: any) => {
   const [formData, setFormData] = useState({
     displayName: '',
@@ -366,33 +526,33 @@ const AddContractorModal = ({ onClose, onAdd }: any) => {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md transform animate-in slide-in-from-bottom-4 duration-300">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-md transform animate-in slide-in-from-bottom-4 duration-300">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
             <UserPlus className="w-6 h-6 text-white" />
           </div>
-          <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
             Nieuwe ZZP&apos;er
           </h3>
         </div>
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Naam *</label>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Naam *</label>
             <input
               type="text"
               value={formData.displayName}
               onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+              className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500"
               placeholder="bijv. Jan de Vries"
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">E-mail *</label>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">E-mail *</label>
             <input
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+              className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500"
               placeholder="bijv. jan@example.com"
             />
           </div>
@@ -400,7 +560,7 @@ const AddContractorModal = ({ onClose, onAdd }: any) => {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 font-semibold transition-all duration-200 hover:scale-105"
+              className="flex-1 px-6 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 font-semibold transition-all duration-200 hover:scale-105 dark:text-white"
             >
               Annuleren
             </button>
@@ -611,9 +771,190 @@ const AddEngagementModal = ({ onClose, onAdd, contractors, organizations }: any)
   );
 };
 
-const PeopleManagement = ({ data, onUpdate }: any) => {
+const Dashboard = ({ data, onNavigate, darkMode }: any) => {
+  const totalEngagements = data.engagements.length;
+  const totalContractors = data.contractors.length;
+  const totalOrganizations = data.organizations.length;
+  const totalChecks = data.checkRuns.length;
+
+  const engagementsWithScores = data.engagements.map((eng: any) => {
+    const latestCheck = data.checkRuns
+      .filter((cr: any) => cr.engagementId === eng.id)
+      .sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
+    const score = latestCheck ? data.scoreResults.find((sr: any) => sr.checkRunId === latestCheck.id) : null;
+    return { ...eng, latestScore: score };
+  });
+
+  const approvedCount = engagementsWithScores.filter((e: any) => e.latestScore?.status === 'GOEDGEKEURD').length;
+  const warningCount = engagementsWithScores.filter((e: any) => e.latestScore?.status === 'TER_BEOORDELING').length;
+  const rejectedCount = engagementsWithScores.filter((e: any) => e.latestScore?.status === 'AFGEKEURD').length;
+  const pendingCount = engagementsWithScores.filter((e: any) => !e.latestScore).length;
+
+  return (
+    <div className="space-y-6">
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h2>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">Overzicht van uw ZZP compliance status</p>
+      </div>
+
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 border border-gray-100 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 font-semibold">Totaal Opdrachten</p>
+              <p className="text-4xl font-bold text-gray-900 dark:text-white mt-2">{totalEngagements}</p>
+            </div>
+            <div className="p-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl">
+              <FileText className="w-8 h-8 text-white" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 border border-gray-100 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 font-semibold">ZZP&apos;ers</p>
+              <p className="text-4xl font-bold text-gray-900 dark:text-white mt-2">{totalContractors}</p>
+            </div>
+            <div className="p-4 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl">
+              <Users className="w-8 h-8 text-white" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 border border-gray-100 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 font-semibold">Organisaties</p>
+              <p className="text-4xl font-bold text-gray-900 dark:text-white mt-2">{totalOrganizations}</p>
+            </div>
+            <div className="p-4 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl">
+              <Building className="w-8 h-8 text-white" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 border border-gray-100 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 font-semibold">Checks Uitgevoerd</p>
+              <p className="text-4xl font-bold text-gray-900 dark:text-white mt-2">{totalChecks}</p>
+            </div>
+            <div className="p-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl">
+              <Activity className="w-8 h-8 text-white" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Compliance Status Overview */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+          <BarChart3 className="w-6 h-6" />
+          Compliance Status Overzicht
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border-2 border-green-200 dark:border-green-800">
+            <div className="flex items-center justify-between mb-2">
+              <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+              <p className="text-3xl font-bold text-green-900 dark:text-green-100">{approvedCount}</p>
+            </div>
+            <p className="text-sm font-semibold text-green-800 dark:text-green-300">Goedgekeurd</p>
+          </div>
+
+          <div className="p-6 bg-gradient-to-br from-orange-50 to-amber-100 dark:from-orange-900/20 dark:to-amber-900/20 rounded-xl border-2 border-orange-200 dark:border-orange-800">
+            <div className="flex items-center justify-between mb-2">
+              <AlertTriangle className="w-8 h-8 text-orange-600 dark:text-orange-400" />
+              <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">{warningCount}</p>
+            </div>
+            <p className="text-sm font-semibold text-orange-800 dark:text-orange-300">Ter Beoordeling</p>
+          </div>
+
+          <div className="p-6 bg-gradient-to-br from-red-50 to-rose-100 dark:from-red-900/20 dark:to-rose-900/20 rounded-xl border-2 border-red-200 dark:border-red-800">
+            <div className="flex items-center justify-between mb-2">
+              <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
+              <p className="text-3xl font-bold text-red-900 dark:text-red-100">{rejectedCount}</p>
+            </div>
+            <p className="text-sm font-semibold text-red-800 dark:text-red-300">Afgekeurd</p>
+          </div>
+
+          <div className="p-6 bg-gradient-to-br from-gray-50 to-slate-100 dark:from-gray-700 dark:to-slate-700 rounded-xl border-2 border-gray-200 dark:border-gray-600">
+            <div className="flex items-center justify-between mb-2">
+              <Clock className="w-8 h-8 text-gray-600 dark:text-gray-400" />
+              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{pendingCount}</p>
+            </div>
+            <p className="text-sm font-semibold text-gray-800 dark:text-gray-300">Nog Te Beoordelen</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Activity */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Recente Activiteit</h3>
+        <div className="space-y-4">
+          {data.checkRuns
+            .sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+            .slice(0, 5)
+            .map((check: any) => {
+              const engagement = data.engagements.find((e: any) => e.id === check.engagementId);
+              const contractor = data.contractors.find((c: any) => c.id === engagement?.contractorId);
+              const scoreResult = data.scoreResults.find((sr: any) => sr.checkRunId === check.id);
+              return (
+                <div key={check.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:shadow-md transition-all duration-200">
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900 dark:text-white">{engagement?.roleTitle}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{contractor?.displayName}</p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {new Date(check.timestamp).toLocaleDateString('nl-NL')}
+                    </p>
+                    {scoreResult && <StatusBadge status={scoreResult.status} />}
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <button
+          onClick={() => onNavigate('engagements')}
+          className="p-6 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
+        >
+          <FileText className="w-8 h-8 mb-3" />
+          <p className="font-bold text-lg">Bekijk Opdrachten</p>
+          <p className="text-sm opacity-90 mt-1">Beheer al uw ZZP-opdrachten</p>
+        </button>
+
+        <button
+          onClick={() => onNavigate('people')}
+          className="p-6 bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
+        >
+          <Users className="w-8 h-8 mb-3" />
+          <p className="font-bold text-lg">Beheer ZZP&apos;ers</p>
+          <p className="text-sm opacity-90 mt-1">Organisaties en freelancers</p>
+        </button>
+
+        <button
+          onClick={() => onNavigate('engagements')}
+          className="p-6 bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
+        >
+          <Plus className="w-8 h-8 mb-3" />
+          <p className="font-bold text-lg">Nieuwe Check</p>
+          <p className="text-sm opacity-90 mt-1">Start een nieuwe beoordeling</p>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const PeopleManagement = ({ data, onUpdate, darkMode }: any) => {
   const [showAddContractor, setShowAddContractor] = useState(false);
   const [showAddOrg, setShowAddOrg] = useState(false);
+  const [deleteItem, setDeleteItem] = useState<any>(null);
 
   const addContractor = (formData: any) => {
     const newContractor = {
@@ -635,13 +976,40 @@ const PeopleManagement = ({ data, onUpdate }: any) => {
     onUpdate({ ...data, organizations: [...data.organizations, newOrg] });
   };
 
+  const handleDeleteContractor = (contractor: any) => {
+    setDeleteItem({ type: 'ZZP\'er', item: contractor });
+  };
+
+  const handleDeleteOrganization = (org: any) => {
+    setDeleteItem({ type: 'Organisatie', item: org });
+  };
+
+  const confirmDelete = () => {
+    if (!deleteItem) return;
+
+    if (deleteItem.type === 'ZZP\'er') {
+      onUpdate({
+        ...data,
+        contractors: data.contractors.filter((c: any) => c.id !== deleteItem.item.id),
+        engagements: data.engagements.filter((e: any) => e.contractorId !== deleteItem.item.id)
+      });
+    } else if (deleteItem.type === 'Organisatie') {
+      onUpdate({
+        ...data,
+        organizations: data.organizations.filter((o: any) => o.id !== deleteItem.item.id),
+        engagements: data.engagements.filter((e: any) => e.organizationId !== deleteItem.item.id)
+      });
+    }
+    setDeleteItem(null);
+  };
+
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <Users className="w-6 h-6 text-blue-600" />
-            <h2 className="text-2xl font-bold text-gray-900">ZZP&apos;ers</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">ZZP&apos;ers</h2>
           </div>
           <button
             onClick={() => setShowAddContractor(true)}
@@ -653,21 +1021,28 @@ const PeopleManagement = ({ data, onUpdate }: any) => {
         </div>
         <div className="space-y-3">
           {data.contractors.map((contractor: any) => (
-            <div key={contractor.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 hover:shadow-md transition-all duration-200">
+            <div key={contractor.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-100 dark:border-blue-800 hover:shadow-md transition-all duration-200">
               <div>
-                <p className="font-semibold text-gray-900">{contractor.displayName}</p>
-                <p className="text-sm text-gray-600">{contractor.email}</p>
+                <p className="font-semibold text-gray-900 dark:text-white">{contractor.displayName}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{contractor.email}</p>
               </div>
+              <button
+                onClick={() => handleDeleteContractor(contractor)}
+                className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-all duration-200"
+                title="Verwijder ZZP'er"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <Building className="w-6 h-6 text-purple-600" />
-            <h2 className="text-2xl font-bold text-gray-900">Organisaties</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Organisaties</h2>
           </div>
           <button
             onClick={() => setShowAddOrg(true)}
@@ -679,11 +1054,18 @@ const PeopleManagement = ({ data, onUpdate }: any) => {
         </div>
         <div className="space-y-3">
           {data.organizations.map((org: any) => (
-            <div key={org.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 hover:shadow-md transition-all duration-200">
+            <div key={org.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl border border-purple-100 dark:border-purple-800 hover:shadow-md transition-all duration-200">
               <div>
-                <p className="font-semibold text-gray-900">{org.name}</p>
-                <p className="text-sm text-gray-600">{org.type === 'CLIENT' ? 'Opdrachtgever' : 'Leverancier'}</p>
+                <p className="font-semibold text-gray-900 dark:text-white">{org.name}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{org.type === 'CLIENT' ? 'Opdrachtgever' : 'Leverancier'}</p>
               </div>
+              <button
+                onClick={() => handleDeleteOrganization(org)}
+                className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-all duration-200"
+                title="Verwijder organisatie"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
             </div>
           ))}
         </div>
@@ -691,6 +1073,14 @@ const PeopleManagement = ({ data, onUpdate }: any) => {
 
       {showAddContractor && <AddContractorModal onClose={() => setShowAddContractor(false)} onAdd={addContractor} />}
       {showAddOrg && <AddOrganizationModal onClose={() => setShowAddOrg(false)} onAdd={addOrganization} />}
+      {deleteItem && (
+        <DeleteConfirmModal
+          onClose={() => setDeleteItem(null)}
+          onConfirm={confirmDelete}
+          itemName={deleteItem.type === 'ZZP\'er' ? deleteItem.item.displayName : deleteItem.item.name}
+          itemType={deleteItem.type}
+        />
+      )}
     </div>
   );
 };
@@ -825,8 +1215,11 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
       checkRunId,
       totalScore: score.totalScore,
       status: score.status,
+      verdict: score.verdict,
       rulesetVersion: score.rulesetVersion,
-      triggeredRules: JSON.stringify(score.triggeredRules)
+      triggeredRules: JSON.stringify(score.triggeredRules),
+      adviceForContractor: score.adviceForContractor,
+      adviceForClient: score.adviceForClient
     };
 
     onUpdate({
@@ -989,8 +1382,52 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
             )}
           </div>
 
-          <div className="mt-8 pt-8 border-t-2 border-gray-200 text-center">
-            <p className="text-sm text-gray-600">
+          {(scoreResult.adviceForContractor || scoreResult.adviceForClient) && (
+            <div className="mt-8 space-y-6">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Advies voor Verbetering</h3>
+
+              {scoreResult.adviceForContractor && (
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-2xl p-6 border-2 border-blue-200 dark:border-blue-800">
+                  <h4 className="text-xl font-bold text-blue-900 dark:text-blue-100 mb-4 flex items-center gap-2">
+                    <Users className="w-6 h-6" />
+                    Voor de ZZP&apos;er
+                  </h4>
+                  <div className="space-y-3 text-blue-900 dark:text-blue-100">
+                    {scoreResult.adviceForContractor.split('\n\n').map((advice: string, idx: number) => (
+                      <div key={idx} className="flex items-start gap-3 p-4 bg-white/50 dark:bg-gray-800/50 rounded-xl">
+                        <div className="p-1 bg-blue-500 rounded-full mt-1">
+                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                        </div>
+                        <p className="flex-1 text-sm font-medium">{advice}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {scoreResult.adviceForClient && (
+                <div className="bg-gradient-to-br from-purple-50 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-2xl p-6 border-2 border-purple-200 dark:border-purple-800">
+                  <h4 className="text-xl font-bold text-purple-900 dark:text-purple-100 mb-4 flex items-center gap-2">
+                    <Building className="w-6 h-6" />
+                    Voor de Opdrachtgever
+                  </h4>
+                  <div className="space-y-3 text-purple-900 dark:text-purple-100">
+                    {scoreResult.adviceForClient.split('\n\n').map((advice: string, idx: number) => (
+                      <div key={idx} className="flex items-start gap-3 p-4 bg-white/50 dark:bg-gray-800/50 rounded-xl">
+                        <div className="p-1 bg-purple-500 rounded-full mt-1">
+                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                        </div>
+                        <p className="flex-1 text-sm font-medium">{advice}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="mt-8 pt-8 border-t-2 border-gray-200 dark:border-gray-700 text-center">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Beoordeeld op {new Date(latestCheckRun.timestamp).toLocaleDateString('nl-NL', {
                 weekday: 'long',
                 year: 'numeric',
@@ -998,7 +1435,7 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
                 day: 'numeric'
               })}
             </p>
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
               Ruleset versie: {scoreResult.rulesetVersion}
             </p>
           </div>
@@ -1106,8 +1543,28 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
 export default function ZZPComplianceApp() {
   const [data, setData] = useState(initializeData);
   const [selectedEngagement, setSelectedEngagement] = useState<string | null>(null);
-  const [currentView, setCurrentView] = useState('engagements');
+  const [currentView, setCurrentView] = useState('dashboard');
   const [showAddEngagement, setShowAddEngagement] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    setDarkMode(savedDarkMode);
+    if (savedDarkMode) {
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem('darkMode', String(newDarkMode));
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
 
   const handleUpdate = (newData: any) => {
     setData(newData);
@@ -1147,11 +1604,14 @@ export default function ZZPComplianceApp() {
     : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
-      <header className="bg-white/80 backdrop-blur-lg shadow-lg border-b border-gray-200">
+    <div className={`min-h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50'}`}>
+      <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg shadow-lg border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <button
+              onClick={() => { setCurrentView('dashboard'); setSelectedEngagement(null); }}
+              className="flex items-center gap-4 hover:opacity-80 transition-opacity duration-200"
+            >
               <div className="p-3 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl shadow-lg shadow-blue-500/50">
                 <Shield className="w-8 h-8 text-white" />
               </div>
@@ -1159,19 +1619,30 @@ export default function ZZPComplianceApp() {
                 <h1 className="text-4xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
                   ZZP Compliance
                 </h1>
-                <p className="text-sm text-gray-600 font-medium mt-1">
+                <p className="text-sm text-gray-600 dark:text-gray-400 font-medium mt-1">
                   Monitor naleving met geautomatiseerde risicobeoordelingen
                 </p>
               </div>
-            </div>
+            </button>
             <div className="flex items-center gap-4">
               <nav className="flex gap-2">
+                <button
+                  onClick={() => { setCurrentView('dashboard'); setSelectedEngagement(null); }}
+                  className={`px-6 py-2 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2 ${
+                    currentView === 'dashboard'
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <Home className="w-4 h-4" />
+                  Dashboard
+                </button>
                 <button
                   onClick={() => { setCurrentView('engagements'); setSelectedEngagement(null); }}
                   className={`px-6 py-2 rounded-xl font-semibold transition-all duration-200 ${
                     currentView === 'engagements'
                       ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
-                      : 'text-gray-600 hover:bg-gray-100'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
                 >
                   Opdrachten
@@ -1181,15 +1652,22 @@ export default function ZZPComplianceApp() {
                   className={`px-6 py-2 rounded-xl font-semibold transition-all duration-200 ${
                     currentView === 'people'
                       ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
-                      : 'text-gray-600 hover:bg-gray-100'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
                 >
                   Beheer
                 </button>
               </nav>
               <button
+                onClick={toggleDarkMode}
+                className="p-2 rounded-xl border-2 border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
+                title={darkMode ? 'Light mode' : 'Dark mode'}
+              >
+                {darkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-gray-600" />}
+              </button>
+              <button
                 onClick={handleReset}
-                className="px-4 py-2 text-sm border-2 border-red-200 text-red-600 rounded-xl hover:bg-red-50 font-semibold transition-all duration-200"
+                className="px-4 py-2 text-sm border-2 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/30 font-semibold transition-all duration-200"
                 title="Reset alle data"
               >
                 Reset Data
@@ -1200,6 +1678,10 @@ export default function ZZPComplianceApp() {
       </header>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
+        {currentView === 'dashboard' && (
+          <Dashboard data={data} onNavigate={setCurrentView} darkMode={darkMode} />
+        )}
+
         {currentView === 'engagements' && !selectedEngagement && (
           <EngagementList
             data={data}
@@ -1218,7 +1700,7 @@ export default function ZZPComplianceApp() {
         )}
 
         {currentView === 'people' && (
-          <PeopleManagement data={data} onUpdate={handleUpdate} />
+          <PeopleManagement data={data} onUpdate={handleUpdate} darkMode={darkMode} />
         )}
       </div>
 
@@ -1231,10 +1713,10 @@ export default function ZZPComplianceApp() {
         />
       )}
 
-      <footer className="bg-white/80 backdrop-blur-lg border-t border-gray-200 mt-20">
+      <footer className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-t border-gray-200 dark:border-gray-700 mt-20">
         <div className="max-w-7xl mx-auto px-6 py-8 text-center">
-          <p className="text-sm text-gray-600 font-medium">
-            ZZP Compliance MVP • <span className="font-bold text-blue-600">{data.tenant.name}</span> • Multi-tenant architectuur
+          <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+            ZZP Compliance MVP  •  <span className="font-bold text-blue-600 dark:text-blue-400">DCK x ZENO</span> • Multi-tenant architectuur beta 0.1
           </p>
         </div>
       </footer>
