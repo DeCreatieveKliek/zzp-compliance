@@ -1271,6 +1271,75 @@ const Dashboard = ({ data, onNavigate, darkMode }: any) => {
   );
 };
 
+const ArchivedView = ({ data, onUnarchive }: any) => {
+  const archivedEngagements = data.archivedEngagements || [];
+
+  const getContractor = (id: string) => data.contractors.find((c: any) => c.id === id) || data.archivedContractors?.find((c: any) => c.id === id);
+  const getOrganization = (id: string) => data.organizations.find((o: any) => o.id === id) || data.archivedOrganizations?.find((o: any) => o.id === id);
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Archief</h2>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">Gearchiveerde opdrachten, ZZP&apos;ers en organisaties</p>
+      </div>
+
+      {archivedEngagements.length === 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-12 border border-gray-200 dark:border-gray-700 text-center">
+          <Archive className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Geen gearchiveerde items</p>
+          <p className="text-gray-600 dark:text-gray-400">Items die je archiveert verschijnen hier</p>
+        </div>
+      )}
+
+      {archivedEngagements.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+            <Archive className="w-6 h-6" />
+            Gearchiveerde Opdrachten ({archivedEngagements.length})
+          </h3>
+          <div className="space-y-4">
+            {archivedEngagements.map((engagement: any) => {
+              const contractor = getContractor(engagement.contractorId);
+              const organization = getOrganization(engagement.organizationId);
+
+              return (
+                <div
+                  key={engagement.id}
+                  className="flex items-center justify-between p-6 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all duration-200"
+                >
+                  <div className="flex-1">
+                    <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{engagement.roleTitle}</h4>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                      <p className="flex items-center gap-2">
+                        <Users className="w-4 h-4" />
+                        {contractor?.displayName || 'Onbekend'}
+                        <span className="text-gray-400 dark:text-gray-500">@</span>
+                        {organization?.name || 'Onbekend'}
+                      </p>
+                      <p className="flex items-center gap-2">
+                        <Clock className="w-4 h-4" />
+                        Gearchiveerd op {new Date(engagement.archivedAt).toLocaleDateString('nl-NL')}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => onUnarchive(engagement.id)}
+                    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold transition-all duration-200"
+                  >
+                    <Archive className="w-4 h-4" />
+                    Terughalen
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const PeopleManagement = ({ data, onUpdate, darkMode }: any) => {
   const [showAddContractor, setShowAddContractor] = useState(false);
   const [showAddOrg, setShowAddOrg] = useState(false);
@@ -1405,9 +1474,11 @@ const PeopleManagement = ({ data, onUpdate, darkMode }: any) => {
   );
 };
 
-const EngagementList = ({ data, onSelectEngagement, onAddEngagement }: any) => {
+const EngagementList = ({ data, onSelectEngagement, onAddEngagement, onBulkDelete, onBulkArchive }: any) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState((window as any).statusFilter || 'ALL');
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [bulkMode, setBulkMode] = useState(false);
 
   useEffect(() => {
     if ((window as any).statusFilter) {
@@ -1442,6 +1513,35 @@ const EngagementList = ({ data, onSelectEngagement, onAddEngagement }: any) => {
     return matchesSearch && matchesStatus;
   });
 
+  const toggleSelectItem = (e: React.ChangeEvent<HTMLInputElement>, id: string) => {
+    e.stopPropagation();
+    setSelectedItems(prev =>
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const selectAll = () => {
+    setSelectedItems(filteredEngagements.map((e: any) => e.id));
+  };
+
+  const deselectAll = () => {
+    setSelectedItems([]);
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedItems.length === 0) return;
+    onBulkDelete(selectedItems);
+    setSelectedItems([]);
+    setBulkMode(false);
+  };
+
+  const handleBulkArchive = () => {
+    if (selectedItems.length === 0) return;
+    onBulkArchive(selectedItems);
+    setSelectedItems([]);
+    setBulkMode(false);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -1449,14 +1549,65 @@ const EngagementList = ({ data, onSelectEngagement, onAddEngagement }: any) => {
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Opdrachten</h2>
           <p className="text-gray-600 dark:text-gray-400 mt-1">Overzicht van alle ZZP-opdrachten en hun compliance status</p>
         </div>
-        <button
-          onClick={onAddEngagement}
-          className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-3 rounded-xl hover:from-green-700 hover:to-emerald-700 font-semibold shadow-lg shadow-green-500/50 transition-all duration-200 hover:scale-105"
-        >
-          <Plus className="w-5 h-5" />
-          Nieuwe Opdracht
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setBulkMode(!bulkMode)}
+            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+              bulkMode
+                ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
+                : 'border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            <Filter className="w-5 h-5" />
+            {bulkMode ? 'Bulk Mode Uit' : 'Bulk Selectie'}
+          </button>
+          <button
+            onClick={onAddEngagement}
+            className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-3 rounded-xl hover:from-green-700 hover:to-emerald-700 font-semibold shadow-lg shadow-green-500/50 transition-all duration-200 hover:scale-105"
+          >
+            <Plus className="w-5 h-5" />
+            Nieuwe Opdracht
+          </button>
+        </div>
       </div>
+
+      {bulkMode && selectedItems.length > 0 && (
+        <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <p className="text-sm font-semibold text-blue-900 dark:text-blue-100">
+              {selectedItems.length} item(s) geselecteerd
+            </p>
+            <button
+              onClick={selectAll}
+              className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              Alles selecteren
+            </button>
+            <button
+              onClick={deselectAll}
+              className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              Deselecteren
+            </button>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={handleBulkArchive}
+              className="flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 font-semibold transition-all duration-200"
+            >
+              <Archive className="w-4 h-4" />
+              Archiveren
+            </button>
+            <button
+              onClick={handleBulkDelete}
+              className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 font-semibold transition-all duration-200"
+            >
+              <Trash2 className="w-4 h-4" />
+              Verwijderen
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="flex gap-4">
         <div className="flex-1 relative">
@@ -1492,10 +1643,31 @@ const EngagementList = ({ data, onSelectEngagement, onAddEngagement }: any) => {
           return (
             <div
               key={engagement.id}
-              onClick={() => onSelectEngagement(engagement.id)}
-              className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700 hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
+              onClick={() => {
+                if (bulkMode) {
+                  const e = { stopPropagation: () => {} } as React.ChangeEvent<HTMLInputElement>;
+                  toggleSelectItem(e, engagement.id);
+                } else {
+                  onSelectEngagement(engagement.id);
+                }
+              }}
+              className={`bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border-2 transition-all duration-300 cursor-pointer transform hover:scale-[1.02] ${
+                bulkMode && selectedItems.includes(engagement.id)
+                  ? 'border-blue-500 dark:border-blue-400 shadow-blue-500/50'
+                  : 'border-gray-200 dark:border-gray-700 hover:shadow-2xl'
+              }`}
             >
               <div className="flex items-start justify-between">
+                {bulkMode && (
+                  <div className="mr-4 pt-1" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      checked={selectedItems.includes(engagement.id)}
+                      onChange={(e) => toggleSelectItem(e, engagement.id)}
+                      className="w-6 h-6 rounded border-2 border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                    />
+                  </div>
+                )}
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-3">
                     <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{engagement.roleTitle}</h3>
@@ -1990,6 +2162,52 @@ export default function ZZPComplianceApp() {
     handleUpdate({ ...data, engagements: [...data.engagements, newEngagement] });
   };
 
+  const handleBulkDeleteEngagements = (ids: string[]) => {
+    if (!confirm(`Weet je zeker dat je ${ids.length} opdracht(en) definitief wilt verwijderen?`)) {
+      return;
+    }
+    const newData = {
+      ...data,
+      engagements: data.engagements.filter((e: any) => !ids.includes(e.id)),
+      checkRuns: data.checkRuns.filter((cr: any) => !ids.includes(cr.engagementId)),
+      answers: data.answers.filter((a: any) => {
+        const checkRun = data.checkRuns.find((cr: any) => cr.id === a.checkRunId);
+        return checkRun && !ids.includes(checkRun.engagementId);
+      }),
+      scoreResults: data.scoreResults.filter((sr: any) => {
+        const checkRun = data.checkRuns.find((cr: any) => cr.id === sr.checkRunId);
+        return checkRun && !ids.includes(checkRun.engagementId);
+      })
+    };
+    handleUpdate(newData);
+  };
+
+  const handleBulkArchiveEngagements = (ids: string[]) => {
+    const engagementsToArchive = data.engagements.filter((e: any) => ids.includes(e.id));
+    const newData = {
+      ...data,
+      engagements: data.engagements.filter((e: any) => !ids.includes(e.id)),
+      archivedEngagements: [...(data.archivedEngagements || []), ...engagementsToArchive.map((e: any) => ({
+        ...e,
+        archivedAt: new Date().toISOString()
+      }))]
+    };
+    handleUpdate(newData);
+  };
+
+  const handleUnarchiveEngagement = (id: string) => {
+    const engagementToUnarchive = data.archivedEngagements.find((e: any) => e.id === id);
+    if (!engagementToUnarchive) return;
+
+    const { archivedAt, ...engagement } = engagementToUnarchive;
+    const newData = {
+      ...data,
+      archivedEngagements: data.archivedEngagements.filter((e: any) => e.id !== id),
+      engagements: [...data.engagements, engagement]
+    };
+    handleUpdate(newData);
+  };
+
   const selectedEngagementData = selectedEngagement
     ? data.engagements.find((e: any) => e.id === selectedEngagement)
     : null;
@@ -2048,6 +2266,17 @@ export default function ZZPComplianceApp() {
                 >
                   Beheer
                 </button>
+                <button
+                  onClick={() => { setCurrentView('archive'); setSelectedEngagement(null); }}
+                  className={`px-6 py-2 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2 ${
+                    currentView === 'archive'
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <Archive className="w-4 h-4" />
+                  Archief
+                </button>
               </nav>
               <button
                 onClick={toggleDarkMode}
@@ -2078,6 +2307,8 @@ export default function ZZPComplianceApp() {
             data={data}
             onSelectEngagement={setSelectedEngagement}
             onAddEngagement={() => setShowAddEngagement(true)}
+            onBulkDelete={handleBulkDeleteEngagements}
+            onBulkArchive={handleBulkArchiveEngagements}
           />
         )}
 
@@ -2092,6 +2323,13 @@ export default function ZZPComplianceApp() {
 
         {currentView === 'people' && (
           <PeopleManagement data={data} onUpdate={handleUpdate} darkMode={darkMode} />
+        )}
+
+        {currentView === 'archive' && (
+          <ArchivedView
+            data={data}
+            onUnarchive={handleUnarchiveEngagement}
+          />
         )}
       </div>
 
