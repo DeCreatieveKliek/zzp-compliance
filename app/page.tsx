@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Calendar, AlertCircle, CheckCircle, AlertTriangle, Plus, Clock, Users, Building, UserPlus, Sparkles, Shield, TrendingUp, Moon, Sun, Home, Trash2, BarChart3, Activity, FileText, X, Search, Archive, Download, Mail, Filter } from 'lucide-react';
+import { Calendar, AlertCircle, CheckCircle, AlertTriangle, Plus, Clock, Users, Building, UserPlus, Sparkles, Shield, TrendingUp, Moon, Sun, Home, Trash2, BarChart3, Activity, FileText, X, Search, Archive, Download, Mail, Filter, ChevronDown } from 'lucide-react';
 
 // Mock data store
 const DATA_VERSION = '4.0-multi-arrest';
@@ -521,6 +521,93 @@ const computeScore = (answersByKey: any) => {
   };
 };
 
+// SearchableSelect Component
+const SearchableSelect = ({ options, value, onChange, placeholder, label }: any) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const selectedOption = options.find((opt: any) => opt.value === value);
+
+  const filteredOptions = options.filter((opt: any) =>
+    opt.label.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleSelect = (optionValue: string) => {
+    onChange(optionValue);
+    setIsOpen(false);
+    setSearchQuery('');
+  };
+
+  return (
+    <div className="relative">
+      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+        {label} *
+      </label>
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 text-left flex items-center justify-between"
+        >
+          <span className={selectedOption ? 'text-gray-900 dark:text-white' : 'text-gray-400'}>
+            {selectedOption ? selectedOption.label : placeholder}
+          </span>
+          <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isOpen ? 'transform rotate-180' : ''}`} />
+        </button>
+
+        {isOpen && (
+          <div className="absolute z-50 w-full mt-2 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl shadow-2xl max-h-80 overflow-hidden">
+            <div className="p-3 border-b border-gray-200 dark:border-gray-600">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Type om te zoeken..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div className="overflow-y-auto max-h-60">
+              {filteredOptions.length === 0 ? (
+                <div className="p-4 text-center text-gray-500 dark:text-gray-400">
+                  Geen resultaten gevonden
+                </div>
+              ) : (
+                filteredOptions.map((option: any) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => handleSelect(option.value)}
+                    className={`w-full px-4 py-3 text-left hover:bg-purple-50 dark:hover:bg-gray-600 transition-colors ${
+                      value === option.value ? 'bg-purple-100 dark:bg-gray-600 font-semibold' : ''
+                    }`}
+                  >
+                    <span className="text-gray-900 dark:text-white">{option.label}</span>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Overlay to close dropdown when clicking outside */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => {
+            setIsOpen(false);
+            setSearchQuery('');
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
 const StatusBadge = ({ status }: { status: string }) => {
   const config: any = {
     GOEDGEKEURD: {
@@ -991,32 +1078,20 @@ const AddEngagementModal = ({ onClose, onAdd, contractors, organizations }: any)
         </div>
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">ZZP&apos;er *</label>
-              <select
-                value={formData.contractorId}
-                onChange={(e) => setFormData({ ...formData, contractorId: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-              >
-                <option value="">Selecteer ZZP&apos;er</option>
-                {contractors.map((c: any) => (
-                  <option key={c.id} value={c.id}>{c.displayName}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Organisatie *</label>
-              <select
-                value={formData.organizationId}
-                onChange={(e) => setFormData({ ...formData, organizationId: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
-              >
-                <option value="">Selecteer organisatie</option>
-                {organizations.map((o: any) => (
-                  <option key={o.id} value={o.id}>{o.name}</option>
-                ))}
-              </select>
-            </div>
+            <SearchableSelect
+              label="ZZP'er"
+              placeholder="Selecteer ZZP'er"
+              value={formData.contractorId}
+              onChange={(value: string) => setFormData({ ...formData, contractorId: value })}
+              options={contractors.map((c: any) => ({ value: c.id, label: c.displayName }))}
+            />
+            <SearchableSelect
+              label="Organisatie"
+              placeholder="Selecteer organisatie"
+              value={formData.organizationId}
+              onChange={(value: string) => setFormData({ ...formData, organizationId: value })}
+              options={organizations.map((o: any) => ({ value: o.id, label: o.name }))}
+            />
           </div>
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Rol *</label>
@@ -2683,6 +2758,8 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
   const [answers, setAnswers] = useState<any>({});
   const [showResults, setShowResults] = useState(false);
   const [showExport, setShowExport] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Set<string>>(new Set());
+  const [showValidationError, setShowValidationError] = useState(false);
 
   const contractor = data.contractors.find((c: any) => c.id === engagement.contractorId);
   const organization = data.organizations.find((o: any) => o.id === engagement.organizationId);
@@ -2697,9 +2774,36 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
 
   const handleAnswerChange = (questionKey: string, value: any) => {
     setAnswers({ ...answers, [questionKey]: value });
+    // Remove from validation errors when answered
+    if (validationErrors.has(questionKey)) {
+      const newErrors = new Set(validationErrors);
+      newErrors.delete(questionKey);
+      setValidationErrors(newErrors);
+    }
+    if (showValidationError) {
+      setShowValidationError(false);
+    }
   };
 
   const handleSubmit = () => {
+    // Validate that all questions are answered
+    const unansweredQuestions = questions.filter((q: any) => {
+      const answer = answers[q.key];
+      return answer === undefined || answer === null || answer === '';
+    });
+
+    if (unansweredQuestions.length > 0) {
+      const errorKeys = new Set<string>(unansweredQuestions.map((q: any) => q.key));
+      setValidationErrors(errorKeys);
+      setShowValidationError(true);
+      // Scroll to first error
+      const firstErrorElement = document.getElementById(`question-${unansweredQuestions[0].key}`);
+      if (firstErrorElement) {
+        firstErrorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+
     const checkRunId = String(Date.now());
     const timestamp = new Date().toISOString();
 
@@ -3022,43 +3126,90 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Nieuwe Beoordeling</h3>
             <p className="text-gray-600 dark:text-gray-400">Beantwoord de vragen volgens de criteria uit het Deliveroo-arrest, Groen/Schoevers-arrest en Helpling-arrest</p>
           </div>
-          {questions.map((question: any) => (
-            <div key={question.id} className="p-6 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
-              <label className="block text-gray-900 dark:text-white font-semibold mb-4">{question.prompt}</label>
-              {question.type === 'BOOLEAN' ? (
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => handleAnswerChange(question.key, true)}
-                    className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all duration-200 ${
-                      answers[question.key] === true
-                        ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg shadow-green-500/50'
-                        : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-green-500'
-                    }`}
-                  >
-                    Ja
-                  </button>
-                  <button
-                    onClick={() => handleAnswerChange(question.key, false)}
-                    className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all duration-200 ${
-                      answers[question.key] === false
-                        ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-lg shadow-red-500/50'
-                        : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-red-500'
-                    }`}
-                  >
-                    Nee
-                  </button>
-                </div>
-              ) : (
-                <textarea
-                  value={answers[question.key] || ''}
-                  onChange={(e) => handleAnswerChange(question.key, e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  rows={4}
-                  placeholder="Voer hier uw antwoord in..."
-                />
-              )}
+
+          {showValidationError && (
+            <div className="p-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-500 dark:border-red-700 rounded-xl flex items-start gap-3 animate-in slide-in-from-top-2">
+              <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-red-900 dark:text-red-200">Niet alle vragen zijn beantwoord</p>
+                <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                  Beantwoord alle vragen voordat u de beoordeling indient. De niet-ingevulde vragen zijn hieronder gemarkeerd.
+                </p>
+              </div>
             </div>
-          ))}
+          )}
+
+          {questions.map((question: any) => {
+            const hasError = validationErrors.has(question.key);
+            return (
+              <div
+                key={question.id}
+                id={`question-${question.key}`}
+                className={`p-6 rounded-xl border-2 transition-all duration-200 ${
+                  hasError
+                    ? 'bg-red-50 dark:bg-red-900/20 border-red-500 dark:border-red-700 animate-pulse'
+                    : 'bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600'
+                }`}
+              >
+                <div className="flex items-start gap-2 mb-4">
+                  <label className="block text-gray-900 dark:text-white font-semibold flex-1">
+                    {question.prompt}
+                  </label>
+                  {hasError && (
+                    <span className="flex items-center gap-1 text-red-600 dark:text-red-400 text-sm font-semibold">
+                      <AlertCircle className="w-4 h-4" />
+                      Verplicht
+                    </span>
+                  )}
+                </div>
+                {question.type === 'BOOLEAN' ? (
+                  <div className="flex gap-4">
+                    <button
+                      onClick={() => handleAnswerChange(question.key, true)}
+                      className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all duration-200 ${
+                        answers[question.key] === true
+                          ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg shadow-green-500/50'
+                          : hasError
+                          ? 'bg-white dark:bg-gray-700 border-2 border-red-500 dark:border-red-700 text-gray-700 dark:text-gray-300 hover:border-green-500'
+                          : 'bg-white dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-green-500'
+                      }`}
+                    >
+                      Ja
+                    </button>
+                    <button
+                      onClick={() => handleAnswerChange(question.key, false)}
+                      className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all duration-200 ${
+                        answers[question.key] === false
+                          ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-lg shadow-red-500/50'
+                          : hasError
+                          ? 'bg-white dark:bg-gray-700 border-2 border-red-500 dark:border-red-700 text-gray-700 dark:text-gray-300 hover:border-red-500'
+                          : 'bg-white dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-red-500'
+                      }`}
+                    >
+                      Nee
+                    </button>
+                  </div>
+                ) : (
+                  <textarea
+                    value={answers[question.key] || ''}
+                    onChange={(e) => handleAnswerChange(question.key, e.target.value)}
+                    className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
+                      hasError
+                        ? 'border-red-500 dark:border-red-700 bg-white dark:bg-gray-800 dark:text-white'
+                        : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-white'
+                    }`}
+                    rows={4}
+                    placeholder="Voer hier uw antwoord in..."
+                  />
+                )}
+                {hasError && (
+                  <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
+                    Dit veld is verplicht
+                  </p>
+                )}
+              </div>
+            );
+          })}
 
           <button
             onClick={handleSubmit}
