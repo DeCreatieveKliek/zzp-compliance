@@ -1079,6 +1079,130 @@ const AddEngagementModal = ({ onClose, onAdd, contractors, organizations }: any)
   );
 };
 
+// Recent Activity Component
+const RecentActivity = ({ data, darkMode }: any) => {
+  const recentEvents = (data.auditEvents || []).slice(0, 10);
+
+  const getActionIcon = (action: string) => {
+    switch (action) {
+      case 'CREATE':
+        return <Plus className="w-4 h-4" />;
+      case 'DELETE':
+      case 'BULK_DELETE':
+        return <Trash2 className="w-4 h-4" />;
+      case 'ARCHIVE':
+      case 'BULK_ARCHIVE':
+        return <Archive className="w-4 h-4" />;
+      case 'UNARCHIVE':
+        return <Activity className="w-4 h-4" />;
+      default:
+        return <Activity className="w-4 h-4" />;
+    }
+  };
+
+  const getActionColor = (action: string) => {
+    switch (action) {
+      case 'CREATE':
+        return 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30';
+      case 'DELETE':
+      case 'BULK_DELETE':
+        return 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30';
+      case 'ARCHIVE':
+      case 'BULK_ARCHIVE':
+        return 'text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/30';
+      case 'UNARCHIVE':
+        return 'text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/30';
+      default:
+        return 'text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-700';
+    }
+  };
+
+  const getActionLabel = (action: string) => {
+    switch (action) {
+      case 'CREATE':
+        return 'Aangemaakt';
+      case 'DELETE':
+        return 'Verwijderd';
+      case 'BULK_DELETE':
+        return 'Bulk Verwijderd';
+      case 'ARCHIVE':
+        return 'Gearchiveerd';
+      case 'BULK_ARCHIVE':
+        return 'Bulk Gearchiveerd';
+      case 'UNARCHIVE':
+        return 'Teruggehaald';
+      default:
+        return action;
+    }
+  };
+
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Zojuist';
+    if (diffMins < 60) return `${diffMins} minuten geleden`;
+    if (diffHours < 24) return `${diffHours} uur geleden`;
+    if (diffDays < 7) return `${diffDays} dagen geleden`;
+    return date.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 border border-gray-100 dark:border-gray-700">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <Activity className="w-6 h-6 text-purple-600" />
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recente Activiteit</h2>
+        </div>
+      </div>
+
+      {recentEvents.length === 0 ? (
+        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          <Activity className="w-12 h-12 mx-auto mb-3 opacity-50" />
+          <p>Nog geen activiteiten</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {recentEvents.map((event: any) => (
+            <div
+              key={event.id}
+              className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:shadow-md transition-all duration-200"
+            >
+              <div className={`p-2 rounded-lg ${getActionColor(event.action)}`}>
+                {getActionIcon(event.action)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-900 dark:text-white">
+                      {getActionLabel(event.action)}: {event.entityType}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                      {event.entityName}
+                    </p>
+                    {event.details && (
+                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                        {event.details}
+                      </p>
+                    )}
+                  </div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                    {formatTimestamp(event.timestamp)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const Dashboard = ({ data, onNavigate, darkMode }: any) => {
   const totalEngagements = data.engagements.length;
   const totalContractors = data.contractors.length;
@@ -1210,33 +1334,7 @@ const Dashboard = ({ data, onNavigate, darkMode }: any) => {
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
-        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Recente Activiteit</h3>
-        <div className="space-y-4">
-          {data.checkRuns
-            .sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-            .slice(0, 5)
-            .map((check: any) => {
-              const engagement = data.engagements.find((e: any) => e.id === check.engagementId);
-              const contractor = data.contractors.find((c: any) => c.id === engagement?.contractorId);
-              const scoreResult = data.scoreResults.find((sr: any) => sr.checkRunId === check.id);
-              return (
-                <div key={check.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:shadow-md transition-all duration-200">
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-900 dark:text-white">{engagement?.roleTitle}</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{contractor?.displayName}</p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {new Date(check.timestamp).toLocaleDateString('nl-NL')}
-                    </p>
-                    {scoreResult && <StatusBadge status={scoreResult.status} />}
-                  </div>
-                </div>
-              );
-            })}
-        </div>
-      </div>
+      <RecentActivity data={data} darkMode={darkMode} />
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1355,11 +1453,23 @@ const SettingsView = ({ onReset }: any) => {
   );
 };
 
-const ArchivedView = ({ data, onUnarchive }: any) => {
+const ArchivedView = ({ data, onUnarchive, onUnarchiveContractor, onUnarchiveOrganization }: any) => {
   const archivedEngagements = data.archivedEngagements || [];
+  const archivedContractors = data.contractors.filter((c: any) => c.archived) || [];
+  const archivedOrganizations = data.organizations.filter((o: any) => o.archived) || [];
 
-  const getContractor = (id: string) => data.contractors.find((c: any) => c.id === id) || data.archivedContractors?.find((c: any) => c.id === id);
-  const getOrganization = (id: string) => data.organizations.find((o: any) => o.id === id) || data.archivedOrganizations?.find((o: any) => o.id === id);
+  const totalArchived = archivedEngagements.length + archivedContractors.length + archivedOrganizations.length;
+
+  const getContractor = (id: string) => data.contractors.find((c: any) => c.id === id);
+  const getOrganization = (id: string) => data.organizations.find((o: any) => o.id === id);
+
+  const getEngagementCount = (contractorId: string) => {
+    return data.engagements.filter((e: any) => e.contractorId === contractorId).length;
+  };
+
+  const getOrgEngagementCount = (organizationId: string) => {
+    return data.engagements.filter((e: any) => e.organizationId === organizationId).length;
+  };
 
   return (
     <div className="space-y-6">
@@ -1368,7 +1478,7 @@ const ArchivedView = ({ data, onUnarchive }: any) => {
         <p className="text-gray-600 dark:text-gray-400 mt-1">Gearchiveerde opdrachten, ZZP&apos;ers en organisaties</p>
       </div>
 
-      {archivedEngagements.length === 0 && (
+      {totalArchived === 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-12 border border-gray-200 dark:border-gray-700 text-center">
           <Archive className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <p className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Geen gearchiveerde items</p>
@@ -1376,10 +1486,76 @@ const ArchivedView = ({ data, onUnarchive }: any) => {
         </div>
       )}
 
+      {archivedContractors.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+            <Users className="w-6 h-6 text-blue-600" />
+            Gearchiveerde ZZP&apos;ers ({archivedContractors.length})
+          </h3>
+          <div className="space-y-3">
+            {archivedContractors.map((contractor: any) => (
+              <div
+                key={contractor.id}
+                className="flex items-center justify-between p-6 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800 hover:shadow-md transition-all duration-200"
+              >
+                <div className="flex-1">
+                  <h4 className="text-lg font-bold text-gray-900 dark:text-white">{contractor.displayName}</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{contractor.email}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                    {getEngagementCount(contractor.id)} opdracht(en)
+                  </p>
+                </div>
+                <button
+                  onClick={() => onUnarchiveContractor(contractor.id)}
+                  className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold transition-all duration-200"
+                >
+                  <Archive className="w-4 h-4" />
+                  Terughalen
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {archivedOrganizations.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+            <Building className="w-6 h-6 text-purple-600" />
+            Gearchiveerde Organisaties ({archivedOrganizations.length})
+          </h3>
+          <div className="space-y-3">
+            {archivedOrganizations.map((org: any) => (
+              <div
+                key={org.id}
+                className="flex items-center justify-between p-6 bg-purple-50 dark:bg-purple-900/20 rounded-xl border border-purple-200 dark:border-purple-800 hover:shadow-md transition-all duration-200"
+              >
+                <div className="flex-1">
+                  <h4 className="text-lg font-bold text-gray-900 dark:text-white">{org.name}</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {org.type === 'CLIENT' ? 'Opdrachtgever' : 'Leverancier'}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                    {getOrgEngagementCount(org.id)} opdracht(en)
+                  </p>
+                </div>
+                <button
+                  onClick={() => onUnarchiveOrganization(org.id)}
+                  className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 font-semibold transition-all duration-200"
+                >
+                  <Archive className="w-4 h-4" />
+                  Terughalen
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {archivedEngagements.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
           <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-            <Archive className="w-6 h-6" />
+            <FileText className="w-6 h-6 text-green-600" />
             Gearchiveerde Opdrachten ({archivedEngagements.length})
           </h3>
           <div className="space-y-4">
@@ -1390,7 +1566,7 @@ const ArchivedView = ({ data, onUnarchive }: any) => {
               return (
                 <div
                   key={engagement.id}
-                  className="flex items-center justify-between p-6 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all duration-200"
+                  className="flex items-center justify-between p-6 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800 hover:shadow-md transition-all duration-200"
                 >
                   <div className="flex-1">
                     <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{engagement.roleTitle}</h4>
@@ -1409,7 +1585,7 @@ const ArchivedView = ({ data, onUnarchive }: any) => {
                   </div>
                   <button
                     onClick={() => onUnarchive(engagement.id)}
-                    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold transition-all duration-200"
+                    className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-semibold transition-all duration-200"
                   >
                     <Archive className="w-4 h-4" />
                     Terughalen
@@ -1424,33 +1600,335 @@ const ArchivedView = ({ data, onUnarchive }: any) => {
   );
 };
 
-const PeopleManagement = ({ data, onUpdate, darkMode }: any) => {
+// Management Hub - keuze tussen ZZP'ers, Organisaties en Overzicht
+const PeopleManagement = ({ data, onUpdate, darkMode, onNavigate }: any) => {
+  return (
+    <div className="space-y-6">
+      <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-2xl p-12 border border-gray-100 dark:border-gray-700">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-3">Beheer Hub</h1>
+          <p className="text-gray-600 dark:text-gray-400 text-lg">Kies wat u wilt beheren</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <button
+            onClick={() => onNavigate('contractors')}
+            className="p-8 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 group"
+          >
+            <Users className="w-12 h-12 mb-4 mx-auto group-hover:scale-110 transition-transform" />
+            <p className="font-bold text-xl mb-2">ZZP&apos;ers</p>
+            <p className="text-sm opacity-90 mb-4">Beheer freelancers en contractors</p>
+            <div className="bg-white/20 rounded-lg p-3 text-center">
+              <p className="text-3xl font-bold">{data.contractors.length}</p>
+              <p className="text-xs opacity-80">Totaal</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => onNavigate('organizations')}
+            className="p-8 bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 group"
+          >
+            <Building className="w-12 h-12 mb-4 mx-auto group-hover:scale-110 transition-transform" />
+            <p className="font-bold text-xl mb-2">Organisaties</p>
+            <p className="text-sm opacity-90 mb-4">Beheer opdrachtgevers en leveranciers</p>
+            <div className="bg-white/20 rounded-lg p-3 text-center">
+              <p className="text-3xl font-bold">{data.organizations.length}</p>
+              <p className="text-xs opacity-80">Totaal</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => onNavigate('dashboard')}
+            className="p-8 bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 group"
+          >
+            <BarChart3 className="w-12 h-12 mb-4 mx-auto group-hover:scale-110 transition-transform" />
+            <p className="font-bold text-xl mb-2">Dashboard</p>
+            <p className="text-sm opacity-90 mb-4">Overzicht en statistieken</p>
+            <div className="bg-white/20 rounded-lg p-3 text-center">
+              <p className="text-3xl font-bold">{data.engagements.length}</p>
+              <p className="text-xs opacity-80">Opdrachten</p>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Contractors Management met zoek en bulk operaties
+const ContractorsManagement = ({ data, onUpdate, onBack, darkMode }: any) => {
   const [showAddContractor, setShowAddContractor] = useState(false);
-  const [showAddOrg, setShowAddOrg] = useState(false);
   const [deleteItem, setDeleteItem] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [bulkMode, setBulkMode] = useState(false);
 
   const addContractor = (formData: any) => {
     const newContractor = {
       id: String(Date.now()),
       tenantId: data.tenant.id,
       displayName: formData.displayName,
-      email: formData.email
+      email: formData.email,
+      archived: false
     };
-    onUpdate({ ...data, contractors: [...data.contractors, newContractor] });
+    const auditEvent = createAuditEvent('CREATE', 'ZZP\'er', formData.displayName, `Email: ${formData.email}`);
+    onUpdate({
+      ...data,
+      contractors: [...data.contractors, newContractor],
+      auditEvents: [auditEvent, ...(data.auditEvents || [])]
+    });
+    setShowAddContractor(false);
   };
+
+  const handleDeleteContractor = (contractor: any) => {
+    setDeleteItem({ type: 'ZZP\'er', item: contractor });
+  };
+
+  const confirmDelete = () => {
+    if (!deleteItem) return;
+    const auditEvent = createAuditEvent('DELETE', 'ZZP\'er', deleteItem.item.displayName, 'Inclusief bijbehorende opdrachten');
+    onUpdate({
+      ...data,
+      contractors: data.contractors.filter((c: any) => c.id !== deleteItem.item.id),
+      engagements: data.engagements.filter((e: any) => e.contractorId !== deleteItem.item.id),
+      auditEvents: [auditEvent, ...(data.auditEvents || [])]
+    });
+    setDeleteItem(null);
+  };
+
+  const filteredContractors = data.contractors
+    .filter((c: any) => !c.archived)
+    .filter((contractor: any) => {
+      const matchesSearch = searchQuery === '' ||
+        contractor.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        contractor.email.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesSearch;
+    });
+
+  const toggleSelectItem = (id: string) => {
+    setSelectedItems(prev =>
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const selectAll = () => {
+    setSelectedItems(filteredContractors.map((c: any) => c.id));
+  };
+
+  const deselectAll = () => {
+    setSelectedItems([]);
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedItems.length === 0) return;
+    if (!confirm(`Weet u zeker dat u ${selectedItems.length} ZZP'er(s) wilt verwijderen?`)) return;
+
+    const auditEvent = createAuditEvent('BULK_DELETE', 'ZZP\'ers', `${selectedItems.length} ZZP'ers`, 'Inclusief bijbehorende opdrachten');
+    onUpdate({
+      ...data,
+      contractors: data.contractors.filter((c: any) => !selectedItems.includes(c.id)),
+      engagements: data.engagements.filter((e: any) => !selectedItems.includes(e.contractorId)),
+      auditEvents: [auditEvent, ...(data.auditEvents || [])]
+    });
+    setSelectedItems([]);
+    setBulkMode(false);
+  };
+
+  const handleBulkArchive = () => {
+    if (selectedItems.length === 0) return;
+
+    const auditEvent = createAuditEvent('BULK_ARCHIVE', 'ZZP\'ers', `${selectedItems.length} ZZP'ers`, 'Gearchiveerd via bulk operatie');
+    onUpdate({
+      ...data,
+      contractors: data.contractors.map((c: any) =>
+        selectedItems.includes(c.id) ? { ...c, archived: true } : c
+      ),
+      auditEvents: [auditEvent, ...(data.auditEvents || [])]
+    });
+    setSelectedItems([]);
+    setBulkMode(false);
+  };
+
+  const getEngagementCount = (contractorId: string) => {
+    return data.engagements.filter((e: any) => e.contractorId === contractorId).length;
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onBack}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all"
+            >
+              <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+            </button>
+            <Users className="w-6 h-6 text-blue-600" />
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">ZZP&apos;ers Beheer</h2>
+            <span className="text-sm text-gray-500 dark:text-gray-400">({filteredContractors.length})</span>
+          </div>
+          <div className="flex items-center gap-3">
+            {bulkMode && selectedItems.length > 0 && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleBulkArchive}
+                  className="flex items-center gap-2 bg-yellow-600 text-white px-4 py-2 rounded-xl hover:bg-yellow-700 font-semibold transition-all"
+                >
+                  <Archive className="w-4 h-4" />
+                  Archiveer ({selectedItems.length})
+                </button>
+                <button
+                  onClick={handleBulkDelete}
+                  className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-xl hover:bg-red-700 font-semibold transition-all"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Verwijder ({selectedItems.length})
+                </button>
+              </div>
+            )}
+            <button
+              onClick={() => setBulkMode(!bulkMode)}
+              className={`px-4 py-2 rounded-xl font-semibold transition-all ${
+                bulkMode
+                  ? 'bg-gray-600 text-white'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+              }`}
+            >
+              {bulkMode ? 'Annuleer' : 'Bulk Modus'}
+            </button>
+            <button
+              onClick={() => setShowAddContractor(true)}
+              className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 font-semibold shadow-lg shadow-blue-500/50 transition-all duration-200 hover:scale-105"
+            >
+              <Plus className="w-5 h-5" />
+              Nieuwe ZZP&apos;er
+            </button>
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Zoek op naam of email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            />
+          </div>
+        </div>
+
+        {bulkMode && (
+          <div className="mb-4 flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+            <button
+              onClick={selectAll}
+              className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              Selecteer Alles
+            </button>
+            <span className="text-gray-400">|</span>
+            <button
+              onClick={deselectAll}
+              className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              Deselecteer Alles
+            </button>
+            <span className="text-sm text-gray-600 dark:text-gray-400 ml-auto">
+              {selectedItems.length} geselecteerd
+            </span>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          {filteredContractors.length === 0 ? (
+            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+              <Users className="w-16 h-16 mx-auto mb-4 opacity-50" />
+              <p className="text-lg">Geen ZZP&apos;ers gevonden</p>
+              {searchQuery && <p className="text-sm mt-2">Probeer een andere zoekopdracht</p>}
+            </div>
+          ) : (
+            filteredContractors.map((contractor: any) => (
+              <div
+                key={contractor.id}
+                className={`flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border transition-all duration-200 ${
+                  selectedItems.includes(contractor.id)
+                    ? 'border-blue-500 ring-2 ring-blue-200 dark:ring-blue-800'
+                    : 'border-blue-100 dark:border-blue-800 hover:shadow-md'
+                }`}
+              >
+                {bulkMode && (
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.includes(contractor.id)}
+                    onChange={() => toggleSelectItem(contractor.id)}
+                    className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                )}
+                <div className="flex-1">
+                  <p className="font-semibold text-gray-900 dark:text-white">{contractor.displayName}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{contractor.email}</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {getEngagementCount(contractor.id)} opdracht(en)
+                    </p>
+                  </div>
+                  {!bulkMode && (
+                    <button
+                      onClick={() => handleDeleteContractor(contractor)}
+                      className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-all duration-200"
+                      title="Verwijder ZZP'er"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {showAddContractor && <AddContractorModal onClose={() => setShowAddContractor(false)} onAdd={addContractor} />}
+      {deleteItem && (
+        <DeleteConfirmModal
+          onClose={() => setDeleteItem(null)}
+          onConfirm={confirmDelete}
+          itemName={deleteItem.item.displayName}
+          itemType={deleteItem.type}
+        />
+      )}
+    </div>
+  );
+};
+
+// Organizations Management met zoek en bulk operaties
+const OrganizationsManagement = ({ data, onUpdate, onBack, darkMode }: any) => {
+  const [showAddOrg, setShowAddOrg] = useState(false);
+  const [deleteItem, setDeleteItem] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState('ALL');
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [bulkMode, setBulkMode] = useState(false);
 
   const addOrganization = (formData: any) => {
     const newOrg = {
       id: String(Date.now()),
       tenantId: data.tenant.id,
       name: formData.name,
-      type: formData.type
+      type: formData.type,
+      archived: false
     };
-    onUpdate({ ...data, organizations: [...data.organizations, newOrg] });
-  };
-
-  const handleDeleteContractor = (contractor: any) => {
-    setDeleteItem({ type: 'ZZP\'er', item: contractor });
+    const auditEvent = createAuditEvent('CREATE', 'Organisatie', formData.name, `Type: ${formData.type === 'CLIENT' ? 'Opdrachtgever' : 'Leverancier'}`);
+    onUpdate({
+      ...data,
+      organizations: [...data.organizations, newOrg],
+      auditEvents: [auditEvent, ...(data.auditEvents || [])]
+    });
+    setShowAddOrg(false);
   };
 
   const handleDeleteOrganization = (org: any) => {
@@ -1459,21 +1937,71 @@ const PeopleManagement = ({ data, onUpdate, darkMode }: any) => {
 
   const confirmDelete = () => {
     if (!deleteItem) return;
-
-    if (deleteItem.type === 'ZZP\'er') {
-      onUpdate({
-        ...data,
-        contractors: data.contractors.filter((c: any) => c.id !== deleteItem.item.id),
-        engagements: data.engagements.filter((e: any) => e.contractorId !== deleteItem.item.id)
-      });
-    } else if (deleteItem.type === 'Organisatie') {
-      onUpdate({
-        ...data,
-        organizations: data.organizations.filter((o: any) => o.id !== deleteItem.item.id),
-        engagements: data.engagements.filter((e: any) => e.organizationId !== deleteItem.item.id)
-      });
-    }
+    const auditEvent = createAuditEvent('DELETE', 'Organisatie', deleteItem.item.name, 'Inclusief bijbehorende opdrachten');
+    onUpdate({
+      ...data,
+      organizations: data.organizations.filter((o: any) => o.id !== deleteItem.item.id),
+      engagements: data.engagements.filter((e: any) => e.organizationId !== deleteItem.item.id),
+      auditEvents: [auditEvent, ...(data.auditEvents || [])]
+    });
     setDeleteItem(null);
+  };
+
+  const filteredOrganizations = data.organizations
+    .filter((o: any) => !o.archived)
+    .filter((org: any) => {
+      const matchesSearch = searchQuery === '' ||
+        org.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesType = typeFilter === 'ALL' || org.type === typeFilter;
+      return matchesSearch && matchesType;
+    });
+
+  const toggleSelectItem = (id: string) => {
+    setSelectedItems(prev =>
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const selectAll = () => {
+    setSelectedItems(filteredOrganizations.map((o: any) => o.id));
+  };
+
+  const deselectAll = () => {
+    setSelectedItems([]);
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedItems.length === 0) return;
+    if (!confirm(`Weet u zeker dat u ${selectedItems.length} organisatie(s) wilt verwijderen?`)) return;
+
+    const auditEvent = createAuditEvent('BULK_DELETE', 'Organisaties', `${selectedItems.length} organisaties`, 'Inclusief bijbehorende opdrachten');
+    onUpdate({
+      ...data,
+      organizations: data.organizations.filter((o: any) => !selectedItems.includes(o.id)),
+      engagements: data.engagements.filter((e: any) => !selectedItems.includes(e.organizationId)),
+      auditEvents: [auditEvent, ...(data.auditEvents || [])]
+    });
+    setSelectedItems([]);
+    setBulkMode(false);
+  };
+
+  const handleBulkArchive = () => {
+    if (selectedItems.length === 0) return;
+
+    const auditEvent = createAuditEvent('BULK_ARCHIVE', 'Organisaties', `${selectedItems.length} organisaties`, 'Gearchiveerd via bulk operatie');
+    onUpdate({
+      ...data,
+      organizations: data.organizations.map((o: any) =>
+        selectedItems.includes(o.id) ? { ...o, archived: true } : o
+      ),
+      auditEvents: [auditEvent, ...(data.auditEvents || [])]
+    });
+    setSelectedItems([]);
+    setBulkMode(false);
+  };
+
+  const getEngagementCount = (organizationId: string) => {
+    return data.engagements.filter((e: any) => e.organizationId === organizationId).length;
   };
 
   return (
@@ -1481,76 +2009,160 @@ const PeopleManagement = ({ data, onUpdate, darkMode }: any) => {
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <Users className="w-6 h-6 text-blue-600" />
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">ZZP&apos;ers</h2>
-          </div>
-          <button
-            onClick={() => setShowAddContractor(true)}
-            className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 font-semibold shadow-lg shadow-blue-500/50 transition-all duration-200 hover:scale-105"
-          >
-            <Plus className="w-5 h-5" />
-            Nieuwe ZZP&apos;er
-          </button>
-        </div>
-        <div className="space-y-3">
-          {data.contractors.map((contractor: any) => (
-            <div key={contractor.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-100 dark:border-blue-800 hover:shadow-md transition-all duration-200">
-              <div>
-                <p className="font-semibold text-gray-900 dark:text-white">{contractor.displayName}</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{contractor.email}</p>
-              </div>
-              <button
-                onClick={() => handleDeleteContractor(contractor)}
-                className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-all duration-200"
-                title="Verwijder ZZP'er"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
+            <button
+              onClick={onBack}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all"
+            >
+              <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+            </button>
             <Building className="w-6 h-6 text-purple-600" />
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Organisaties</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Organisaties Beheer</h2>
+            <span className="text-sm text-gray-500 dark:text-gray-400">({filteredOrganizations.length})</span>
           </div>
-          <button
-            onClick={() => setShowAddOrg(true)}
-            className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl hover:from-purple-700 hover:to-pink-700 font-semibold shadow-lg shadow-purple-500/50 transition-all duration-200 hover:scale-105"
-          >
-            <Plus className="w-5 h-5" />
-            Nieuwe Organisatie
-          </button>
-        </div>
-        <div className="space-y-3">
-          {data.organizations.map((org: any) => (
-            <div key={org.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl border border-purple-100 dark:border-purple-800 hover:shadow-md transition-all duration-200">
-              <div>
-                <p className="font-semibold text-gray-900 dark:text-white">{org.name}</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{org.type === 'CLIENT' ? 'Opdrachtgever' : 'Leverancier'}</p>
+          <div className="flex items-center gap-3">
+            {bulkMode && selectedItems.length > 0 && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleBulkArchive}
+                  className="flex items-center gap-2 bg-yellow-600 text-white px-4 py-2 rounded-xl hover:bg-yellow-700 font-semibold transition-all"
+                >
+                  <Archive className="w-4 h-4" />
+                  Archiveer ({selectedItems.length})
+                </button>
+                <button
+                  onClick={handleBulkDelete}
+                  className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-xl hover:bg-red-700 font-semibold transition-all"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Verwijder ({selectedItems.length})
+                </button>
               </div>
-              <button
-                onClick={() => handleDeleteOrganization(org)}
-                className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-all duration-200"
-                title="Verwijder organisatie"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
+            )}
+            <button
+              onClick={() => setBulkMode(!bulkMode)}
+              className={`px-4 py-2 rounded-xl font-semibold transition-all ${
+                bulkMode
+                  ? 'bg-gray-600 text-white'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+              }`}
+            >
+              {bulkMode ? 'Annuleer' : 'Bulk Modus'}
+            </button>
+            <button
+              onClick={() => setShowAddOrg(true)}
+              className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl hover:from-purple-700 hover:to-pink-700 font-semibold shadow-lg shadow-purple-500/50 transition-all duration-200 hover:scale-105"
+            >
+              <Plus className="w-5 h-5" />
+              Nieuwe Organisatie
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Zoek op naam..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+            />
+          </div>
+          <div className="relative">
+            <Filter className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all appearance-none"
+            >
+              <option value="ALL">Alle Types</option>
+              <option value="CLIENT">Opdrachtgevers</option>
+              <option value="VENDOR">Leveranciers</option>
+            </select>
+          </div>
+        </div>
+
+        {bulkMode && (
+          <div className="mb-4 flex items-center gap-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+            <button
+              onClick={selectAll}
+              className="text-sm text-purple-600 dark:text-purple-400 hover:underline"
+            >
+              Selecteer Alles
+            </button>
+            <span className="text-gray-400">|</span>
+            <button
+              onClick={deselectAll}
+              className="text-sm text-purple-600 dark:text-purple-400 hover:underline"
+            >
+              Deselecteer Alles
+            </button>
+            <span className="text-sm text-gray-600 dark:text-gray-400 ml-auto">
+              {selectedItems.length} geselecteerd
+            </span>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          {filteredOrganizations.length === 0 ? (
+            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+              <Building className="w-16 h-16 mx-auto mb-4 opacity-50" />
+              <p className="text-lg">Geen organisaties gevonden</p>
+              {searchQuery && <p className="text-sm mt-2">Probeer een andere zoekopdracht</p>}
             </div>
-          ))}
+          ) : (
+            filteredOrganizations.map((org: any) => (
+              <div
+                key={org.id}
+                className={`flex items-center gap-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl border transition-all duration-200 ${
+                  selectedItems.includes(org.id)
+                    ? 'border-purple-500 ring-2 ring-purple-200 dark:ring-purple-800'
+                    : 'border-purple-100 dark:border-purple-800 hover:shadow-md'
+                }`}
+              >
+                {bulkMode && (
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.includes(org.id)}
+                    onChange={() => toggleSelectItem(org.id)}
+                    className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                  />
+                )}
+                <div className="flex-1">
+                  <p className="font-semibold text-gray-900 dark:text-white">{org.name}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {org.type === 'CLIENT' ? 'Opdrachtgever' : 'Leverancier'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {getEngagementCount(org.id)} opdracht(en)
+                    </p>
+                  </div>
+                  {!bulkMode && (
+                    <button
+                      onClick={() => handleDeleteOrganization(org)}
+                      className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-all duration-200"
+                      title="Verwijder organisatie"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
-      {showAddContractor && <AddContractorModal onClose={() => setShowAddContractor(false)} onAdd={addContractor} />}
       {showAddOrg && <AddOrganizationModal onClose={() => setShowAddOrg(false)} onAdd={addOrganization} />}
       {deleteItem && (
         <DeleteConfirmModal
           onClose={() => setDeleteItem(null)}
           onConfirm={confirmDelete}
-          itemName={deleteItem.type === 'ZZP\'er' ? deleteItem.item.displayName : deleteItem.item.name}
+          itemName={deleteItem.item.name}
           itemType={deleteItem.type}
         />
       )}
@@ -2187,6 +2799,19 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
   );
 };
 
+// Helper function to log audit events
+const createAuditEvent = (action: string, entityType: string, entityName: string, details?: string) => {
+  return {
+    id: String(Date.now() + Math.random()),
+    timestamp: new Date().toISOString(),
+    action,
+    entityType,
+    entityName,
+    details: details || '',
+    user: 'System User'
+  };
+};
+
 export default function ZZPComplianceApp() {
   const [data, setData] = useState(initializeData);
   const [selectedEngagement, setSelectedEngagement] = useState<string | null>(null);
@@ -2250,6 +2875,7 @@ export default function ZZPComplianceApp() {
     if (!confirm(`Weet je zeker dat je ${ids.length} opdracht(en) definitief wilt verwijderen?`)) {
       return;
     }
+    const auditEvent = createAuditEvent('BULK_DELETE', 'Opdrachten', `${ids.length} opdrachten`, 'Inclusief bijbehorende check runs en antwoorden');
     const newData = {
       ...data,
       engagements: data.engagements.filter((e: any) => !ids.includes(e.id)),
@@ -2261,20 +2887,23 @@ export default function ZZPComplianceApp() {
       scoreResults: data.scoreResults.filter((sr: any) => {
         const checkRun = data.checkRuns.find((cr: any) => cr.id === sr.checkRunId);
         return checkRun && !ids.includes(checkRun.engagementId);
-      })
+      }),
+      auditEvents: [auditEvent, ...(data.auditEvents || [])]
     };
     handleUpdate(newData);
   };
 
   const handleBulkArchiveEngagements = (ids: string[]) => {
     const engagementsToArchive = data.engagements.filter((e: any) => ids.includes(e.id));
+    const auditEvent = createAuditEvent('BULK_ARCHIVE', 'Opdrachten', `${ids.length} opdrachten`, 'Gearchiveerd via bulk operatie');
     const newData = {
       ...data,
       engagements: data.engagements.filter((e: any) => !ids.includes(e.id)),
       archivedEngagements: [...(data.archivedEngagements || []), ...engagementsToArchive.map((e: any) => ({
         ...e,
         archivedAt: new Date().toISOString()
-      }))]
+      }))],
+      auditEvents: [auditEvent, ...(data.auditEvents || [])]
     };
     handleUpdate(newData);
   };
@@ -2284,10 +2913,42 @@ export default function ZZPComplianceApp() {
     if (!engagementToUnarchive) return;
 
     const { archivedAt, ...engagement } = engagementToUnarchive;
+    const auditEvent = createAuditEvent('UNARCHIVE', 'Opdracht', engagement.roleTitle, 'Teruggehaald uit archief');
     const newData = {
       ...data,
       archivedEngagements: data.archivedEngagements.filter((e: any) => e.id !== id),
-      engagements: [...data.engagements, engagement]
+      engagements: [...data.engagements, engagement],
+      auditEvents: [auditEvent, ...(data.auditEvents || [])]
+    };
+    handleUpdate(newData);
+  };
+
+  const handleUnarchiveContractor = (id: string) => {
+    const contractor = data.contractors.find((c: any) => c.id === id);
+    if (!contractor) return;
+
+    const auditEvent = createAuditEvent('UNARCHIVE', 'ZZP\'er', contractor.displayName, 'Teruggehaald uit archief');
+    const newData = {
+      ...data,
+      contractors: data.contractors.map((c: any) =>
+        c.id === id ? { ...c, archived: false } : c
+      ),
+      auditEvents: [auditEvent, ...(data.auditEvents || [])]
+    };
+    handleUpdate(newData);
+  };
+
+  const handleUnarchiveOrganization = (id: string) => {
+    const org = data.organizations.find((o: any) => o.id === id);
+    if (!org) return;
+
+    const auditEvent = createAuditEvent('UNARCHIVE', 'Organisatie', org.name, 'Teruggehaald uit archief');
+    const newData = {
+      ...data,
+      organizations: data.organizations.map((o: any) =>
+        o.id === id ? { ...o, archived: false } : o
+      ),
+      auditEvents: [auditEvent, ...(data.auditEvents || [])]
     };
     handleUpdate(newData);
   };
@@ -2403,13 +3064,33 @@ export default function ZZPComplianceApp() {
         )}
 
         {currentView === 'people' && (
-          <PeopleManagement data={data} onUpdate={handleUpdate} darkMode={darkMode} />
+          <PeopleManagement data={data} onUpdate={handleUpdate} darkMode={darkMode} onNavigate={setCurrentView} />
+        )}
+
+        {currentView === 'contractors' && (
+          <ContractorsManagement
+            data={data}
+            onUpdate={handleUpdate}
+            onBack={() => setCurrentView('people')}
+            darkMode={darkMode}
+          />
+        )}
+
+        {currentView === 'organizations' && (
+          <OrganizationsManagement
+            data={data}
+            onUpdate={handleUpdate}
+            onBack={() => setCurrentView('people')}
+            darkMode={darkMode}
+          />
         )}
 
         {currentView === 'archive' && (
           <ArchivedView
             data={data}
             onUnarchive={handleUnarchiveEngagement}
+            onUnarchiveContractor={handleUnarchiveContractor}
+            onUnarchiveOrganization={handleUnarchiveOrganization}
           />
         )}
 
