@@ -1271,6 +1271,90 @@ const Dashboard = ({ data, onNavigate, darkMode }: any) => {
   );
 };
 
+const SettingsView = ({ onReset }: any) => {
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleReset = () => {
+    if (password !== '123456789') {
+      alert('Onjuist wachtwoord!');
+      return;
+    }
+    if (confirm('Weet je ABSOLUUT zeker dat je alle data wilt resetten? Dit kan niet ongedaan worden gemaakt.')) {
+      onReset();
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Instellingen</h2>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">Systeeminstellingen en gevaarlijke acties</p>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-3 mb-6">
+          <Shield className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Gevaarlijke Zone</h3>
+        </div>
+
+        <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-xl p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
+            <h4 className="text-xl font-bold text-red-900 dark:text-red-100">Data Reset</h4>
+          </div>
+
+          <p className="text-red-800 dark:text-red-200 mb-6">
+            <strong>Let op!</strong> Deze actie verwijdert ALLE data permanent:
+          </p>
+
+          <ul className="list-disc list-inside text-red-700 dark:text-red-300 mb-6 space-y-1">
+            <li>Alle ZZP'ers en organisaties</li>
+            <li>Alle opdrachten en beoordelingen</li>
+            <li>Alle gearchiveerde items</li>
+            <li>Alle check resultaten en scores</li>
+          </ul>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-red-900 dark:text-red-100 mb-2">
+                Wachtwoord vereist:
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-red-300 dark:border-red-700 dark:bg-gray-800 dark:text-white rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                  placeholder="Voer wachtwoord in (123456789)"
+                />
+              </div>
+              <button
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-sm text-red-600 dark:text-red-400 hover:underline mt-2"
+              >
+                {showPassword ? 'Verberg wachtwoord' : 'Toon wachtwoord'}
+              </button>
+            </div>
+
+            <button
+              onClick={handleReset}
+              disabled={!password}
+              className={`w-full px-6 py-4 rounded-xl font-bold text-lg transition-all duration-200 ${
+                password
+                  ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white hover:from-red-700 hover:to-rose-700 shadow-lg shadow-red-500/50 hover:scale-[1.02] cursor-pointer'
+                  : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              🗑️ Reset Alle Data (Permanent!)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const ArchivedView = ({ data, onUnarchive }: any) => {
   const archivedEngagements = data.archivedEngagements || [];
 
@@ -2219,18 +2303,11 @@ export default function ZZPComplianceApp() {
           <div className="flex items-center justify-between">
             <button
               onClick={() => { setCurrentView('dashboard'); setSelectedEngagement(null); }}
-              className="flex items-center gap-4 hover:opacity-80 transition-opacity duration-200"
+              className="hover:opacity-80 transition-opacity duration-200"
+              title="ZZP Compliance - Ga naar Dashboard"
             >
-              <div className="p-3 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl shadow-lg shadow-blue-500/50">
+              <div className="p-3 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl shadow-lg shadow-blue-500/50 hover:scale-110 transition-transform duration-200">
                 <Shield className="w-8 h-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-4xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  ZZP Compliance
-                </h1>
-                <p className="text-sm text-gray-600 dark:text-gray-400 font-medium mt-1">
-                  Monitor naleving met geautomatiseerde risicobeoordelingen
-                </p>
               </div>
             </button>
             <div className="flex items-center gap-4">
@@ -2277,6 +2354,17 @@ export default function ZZPComplianceApp() {
                   <Archive className="w-4 h-4" />
                   Archief
                 </button>
+                <button
+                  onClick={() => { setCurrentView('settings'); setSelectedEngagement(null); }}
+                  className={`px-6 py-2 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2 ${
+                    currentView === 'settings'
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <Shield className="w-4 h-4" />
+                  Instellingen
+                </button>
               </nav>
               <button
                 onClick={toggleDarkMode}
@@ -2284,13 +2372,6 @@ export default function ZZPComplianceApp() {
                 title={darkMode ? 'Light mode' : 'Dark mode'}
               >
                 {darkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-gray-600" />}
-              </button>
-              <button
-                onClick={handleReset}
-                className="px-4 py-2 text-sm border-2 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/30 font-semibold transition-all duration-200"
-                title="Reset alle data"
-              >
-                Reset Data
               </button>
             </div>
           </div>
@@ -2329,6 +2410,12 @@ export default function ZZPComplianceApp() {
           <ArchivedView
             data={data}
             onUnarchive={handleUnarchiveEngagement}
+          />
+        )}
+
+        {currentView === 'settings' && (
+          <SettingsView
+            onReset={handleReset}
           />
         )}
       </div>
