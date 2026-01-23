@@ -2809,6 +2809,7 @@ const OrganizationsManagement = ({ data, onUpdate, onBack }: any) => {
 const EngagementList = ({ data, onSelectEngagement, onAddEngagement, onBulkDelete, onBulkArchive }: any) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState((window as any).statusFilter || 'ALL');
+  const [dateSort, setDateSort] = useState<'asc' | 'desc' | 'none'>('none');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [bulkMode, setBulkMode] = useState(false);
 
@@ -2843,6 +2844,11 @@ const EngagementList = ({ data, onSelectEngagement, onAddEngagement, onBulkDelet
     const matchesStatus = statusFilter === 'ALL' || status === statusFilter;
 
     return matchesSearch && matchesStatus;
+  }).sort((a: any, b: any) => {
+    if (dateSort === 'none') return 0;
+    const dateA = new Date(a.startDate).getTime();
+    const dateB = new Date(b.startDate).getTime();
+    return dateSort === 'asc' ? dateA - dateB : dateB - dateA;
   });
 
   const toggleSelectItem = (e: React.ChangeEvent<HTMLInputElement>, id: string) => {
@@ -2941,8 +2947,8 @@ const EngagementList = ({ data, onSelectEngagement, onAddEngagement, onBulkDelet
         </div>
       )}
 
-      <div className="flex gap-4">
-        <div className="flex-1 relative">
+      <div className="flex gap-4 flex-wrap">
+        <div className="flex-1 min-w-[300px] relative">
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
             type="text"
@@ -2963,6 +2969,30 @@ const EngagementList = ({ data, onSelectEngagement, onAddEngagement, onBulkDelet
           <option value="AFGEKEURD">Afgekeurd</option>
           <option value="PLANNED">Nog Te Beoordelen</option>
         </select>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setDateSort(dateSort === 'asc' ? 'none' : 'asc')}
+            className={`px-4 py-3 rounded-xl font-semibold transition-all duration-200 ${
+              dateSort === 'asc'
+                ? 'bg-purple-600 text-white'
+                : 'border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+            title="Datum oplopend (oudste eerst)"
+          >
+            <Calendar className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setDateSort(dateSort === 'desc' ? 'none' : 'desc')}
+            className={`px-4 py-3 rounded-xl font-semibold transition-all duration-200 ${
+              dateSort === 'desc'
+                ? 'bg-purple-600 text-white'
+                : 'border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+            title="Datum aflopend (nieuwste eerst)"
+          >
+            <Calendar className="w-5 h-5 transform rotate-180" />
+          </button>
+        </div>
       </div>
 
       <div className="grid gap-6">
@@ -3428,9 +3458,31 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
             )}
           </div>
 
+          {/* Opmerkingen/Notes sectie */}
+          {(() => {
+            const notesAnswer = data.answers.find((a: any) => {
+              const question = data.questions.find((q: any) => q.id === a.questionId);
+              return a.checkRunId === latestCheckRun.id && question?.key === 'notes';
+            });
+            if (notesAnswer && notesAnswer.value && notesAnswer.value.trim()) {
+              return (
+                <div className="mt-8">
+                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-2xl p-6 border-2 border-gray-200 dark:border-gray-600">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                      <FileText className="w-6 h-6" />
+                      Aanvullende Opmerkingen
+                    </h3>
+                    <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{notesAnswer.value}</p>
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })()}
+
           {(scoreResult.adviceForContractor || scoreResult.adviceForClient) && (
             <div className="mt-8 space-y-6">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Advies voor Verbetering</h3>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Advies voor Verbetering</h3>
 
               {scoreResult.adviceForContractor && (
                 <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-2xl p-6 border-2 border-blue-200 dark:border-blue-800">
@@ -3822,18 +3874,14 @@ export default function ZZPComplianceApp() {
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
-            {/* Logo & Brand */}
+            {/* Logo with Glassmorphism */}
             <button
               onClick={() => { setCurrentView('dashboard'); setSelectedEngagement(null); }}
-              className="flex items-center gap-3 hover:opacity-90 transition-opacity group"
+              className="group relative"
               title="ZZP Compliance Toolkit"
             >
-              <div className="flex items-center justify-center w-12 h-12 bg-[#7a00df] rounded-lg shadow-sm group-hover:shadow-md transition-all">
-                <Shield className="w-6 h-6 text-white" />
-              </div>
-              <div className="hidden md:flex flex-col">
-                <span className="text-lg font-bold text-[#313131] dark:text-white leading-none">ZZP Compliance</span>
-                <span className="text-sm text-gray-500 dark:text-gray-400">Toolkit voor ZZP'ers</span>
+              <div className="flex items-center justify-center w-12 h-12 bg-[#7a00df] rounded-lg shadow-sm transition-all duration-300 group-hover:backdrop-blur-xl group-hover:bg-opacity-70 group-hover:shadow-2xl group-hover:shadow-purple-500/50 group-hover:scale-110 group-hover:border group-hover:border-white/20">
+                <Shield className="w-6 h-6 text-white transition-transform duration-300 group-hover:rotate-12" />
               </div>
             </button>
 
