@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, AlertCircle, CheckCircle, AlertTriangle, Plus, Clock, Users, Building, UserPlus, Sparkles, Shield, TrendingUp, Home, Trash2, BarChart3, Activity, FileText, X, Search, Archive, Download, Mail, Filter, ChevronDown } from 'lucide-react';
 
 // Mock data store
-const DATA_VERSION = '4.0-multi-arrest';
+const DATA_VERSION = '5.0-mock-data';
 
 const initializeData = () => {
   if (typeof window === 'undefined') return getDefaultData();
@@ -23,28 +23,316 @@ const initializeData = () => {
 };
 
 function getDefaultData() {
+  // Random Nederlandse voornamen
+  const firstNames = ['Jan', 'Peter', 'Lisa', 'Emma', 'Lars', 'Sophie', 'Tom', 'Anna', 'Sven', 'Julia', 'Mark', 'Eva', 'Tim', 'Sara', 'Bas', 'Nina', 'Ruben', 'Laura', 'Daan', 'Fleur', 'Bram', 'Iris', 'Thijs', 'Roos', 'Stijn', 'Mila', 'Luuk', 'Lotte', 'Finn', 'Evi', 'Jesse', 'Noor', 'Milan', 'Liv', 'Robin', 'Fenna', 'Sam', 'Saar', 'Max', 'Lieke', 'Noah', 'Isa', 'Lucas', 'Zoey', 'Adam', 'Lynn', 'Sem', 'Tess', 'Owen', 'Maud'];
+
+  const lastNames = ['de Vries', 'Jansen', 'Bakker', 'Visser', 'Smit', 'Meijer', 'de Jong', 'van Dijk', 'Mulder', 'Bos', 'Hendriks', 'Peters', 'Vermeulen', 'van Leeuwen', 'de Boer', 'van den Berg', 'Koster', 'Dekker', 'Wolters', 'Prins', 'Kuipers', 'van der Meer', 'Jacobs', 'de Wit', 'Brouwer', 'Hoekstra', 'Postma', 'Smits', 'Schouten', 'van Dam', 'Scholten', 'de Graaf', 'Willems', 'van Beek', 'Sanders', 'Verhoeven', 'Roos', 'Kok', 'Claassen', 'van Os', 'Vos', 'Huisman', 'Groot', 'Peeters', 'Hermans', 'Kramer', 'van der Linden', 'Martens', 'Driessen', 'Mol'];
+
+  // Random organisatienamen
+  const orgNames = ['TechVision BV', 'Digital Solutions Nederland', 'Innovate Group', 'NextGen Technologies', 'CloudFirst BV', 'DataDrive Solutions', 'SmartBusiness NL', 'FutureWorks', 'AgileMinds BV', 'CodeCraft Amsterdam', 'WebWorks Rotterdam', 'AppFactory Utrecht', 'DevOps Masters', 'Consultancy Plus', 'IT Partners Holland', 'Software Studio', 'Tech Talent BV', 'Innovation Hub NL', 'Digital Dreams', 'Cyber Solutions', 'NetCore Systems', 'ByteBuilders', 'LogicLab BV', 'CodeCommerce', 'Webdevelopment Pro'];
+
+  const roles = ['Frontend Developer', 'Backend Developer', 'Full Stack Developer', 'DevOps Engineer', 'Data Analyst', 'UX Designer', 'Product Owner', 'Scrum Master', 'Software Architect', 'Mobile Developer', 'Cloud Engineer', 'Security Specialist', 'Business Analyst', 'QA Tester', 'Technical Writer', 'Project Manager', 'Marketing Specialist', 'Content Creator', 'SEO Specialist', 'Graphic Designer'];
+
+  // Genereer 50 ZZP'ers
+  const contractors = [];
+  for (let i = 1; i <= 50; i++) {
+    const firstName = firstNames[i - 1];
+    const lastName = lastNames[i - 1];
+    contractors.push({
+      id: String(i),
+      tenantId: '1',
+      displayName: `${firstName} ${lastName}`,
+      email: `${firstName.toLowerCase()}.${lastName.toLowerCase().replace(/\s+/g, '')}@zzp.nl`
+    });
+  }
+
+  // Genereer 25 organisaties (mix van CLIENT en SUPPLIER)
+  const organizations = [];
+  for (let i = 1; i <= 25; i++) {
+    organizations.push({
+      id: String(i),
+      tenantId: '1',
+      name: orgNames[i - 1],
+      type: i % 3 === 0 ? 'SUPPLIER' : 'CLIENT'
+    });
+  }
+
+  // Genereer 50 opdrachten met verschillende statussen
+  const engagements: any[] = [];
+  const checkRuns: any[] = [];
+  const answers: any[] = [];
+  const scoreResults: any[] = [];
+
+  // Helper functie voor random datum
+  const randomDate = (start: Date, end: Date) => {
+    return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+  };
+
+  // Helper functie voor random antwoorden die een bepaalde score geven
+  const generateAnswersForStatus = (status: 'GOEDGEKEURD' | 'TER_BEOORDELING' | 'AFGEKEURD') => {
+    const answers: any = {};
+
+    if (status === 'GOEDGEKEURD') {
+      // Score moet <= 4 zijn (weinig risicopunten)
+      answers.substitution = true;  // 0 punten
+      answers.instructions = false;  // 0 punten
+      answers.workSchedule = false;  // 0 punten
+      answers.integration = false;  // 0 punten
+      answers.ownMaterials = true;  // 0 punten
+      answers.financialRisk = true;  // 0 punten
+      answers.ownClients = true;  // 0 punten
+      answers.fixedSalary = false;  // 0 punten
+      answers.contractualFreedom = true;  // 0 punten
+      answers.refuseWork = true;  // 0 punten
+      answers.platformDependency = false;  // 0 punten
+      answers.ratingSystem = Math.random() > 0.5;  // variatie
+      answers.clientChoice = true;  // 0 punten
+      answers.notes = 'Duidelijk ondernemerschap, voldoet aan alle criteria.';
+    } else if (status === 'TER_BEOORDELING') {
+      // Score moet tussen 5 en 8 zijn
+      answers.substitution = Math.random() > 0.4;  // soms wel, soms niet
+      answers.instructions = Math.random() > 0.5;
+      answers.workSchedule = true;  // 2 punten
+      answers.integration = Math.random() > 0.5;
+      answers.ownMaterials = Math.random() > 0.3;
+      answers.financialRisk = true;
+      answers.ownClients = Math.random() > 0.4;
+      answers.fixedSalary = Math.random() > 0.6;
+      answers.contractualFreedom = Math.random() > 0.5;
+      answers.refuseWork = Math.random() > 0.5;
+      answers.platformDependency = true;  // 2 punten
+      answers.ratingSystem = Math.random() > 0.5;
+      answers.clientChoice = Math.random() > 0.5;
+      answers.notes = 'Gemengd beeld, nader onderzoek nodig voor definitieve beoordeling.';
+    } else {
+      // AFGEKEURD - score moet >= 9 zijn (veel risicopunten)
+      answers.substitution = false;  // 4 punten
+      answers.instructions = true;  // 3 punten
+      answers.workSchedule = true;  // 2 punten
+      answers.integration = true;  // 3 punten
+      answers.ownMaterials = false;  // 2 punten
+      answers.financialRisk = false;  // 2 punten
+      answers.ownClients = false;  // 2 punten
+      answers.fixedSalary = true;  // 3 punten
+      answers.contractualFreedom = false;  // 2 punten
+      answers.refuseWork = false;  // 2 punten
+      answers.platformDependency = true;  // 2 punten
+      answers.ratingSystem = true;  // 1 punt
+      answers.clientChoice = false;  // 1 punt
+      answers.notes = 'Sterke indicatoren voor schijnzelfstandigheid, hoog risico op dienstverband.';
+    }
+
+    return answers;
+  };
+
+  let engagementId = 1;
+
+  // 14 goedgekeurd
+  for (let i = 0; i < 14; i++) {
+    const contractorId = String((i % 50) + 1);
+    const organizationId = String((i % 25) + 1);
+    const roleIndex = i % roles.length;
+    const startDate = randomDate(new Date(2024, 0, 1), new Date(2024, 6, 1));
+    const endDate = randomDate(new Date(2024, 6, 1), new Date(2024, 11, 31));
+
+    engagements.push({
+      id: String(engagementId),
+      tenantId: '1',
+      organizationId,
+      contractorId,
+      roleTitle: roles[roleIndex],
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0],
+      rateHourly: 70 + Math.floor(Math.random() * 60),
+      metadata: {}
+    });
+
+    const checkRunId = `cr-${engagementId}`;
+    const timestamp = randomDate(new Date(2024, 0, 1), new Date()).toISOString();
+
+    checkRuns.push({
+      id: checkRunId,
+      tenantId: '1',
+      engagementId: String(engagementId),
+      questionnaireId: '1',
+      timestamp,
+      completedBy: 'System Admin'
+    });
+
+    const answerData = generateAnswersForStatus('GOEDGEKEURD');
+    Object.entries(answerData).forEach(([key, value]) => {
+      const question = ['substitution', 'instructions', 'workSchedule', 'integration', 'ownMaterials', 'financialRisk', 'ownClients', 'fixedSalary', 'contractualFreedom', 'refuseWork', 'platformDependency', 'ratingSystem', 'clientChoice', 'notes'].indexOf(key) + 1;
+      answers.push({
+        id: `${checkRunId}-${key}`,
+        checkRunId,
+        questionId: String(question),
+        value: typeof value === 'boolean' ? (value ? 'true' : 'false') : String(value)
+      });
+    });
+
+    const score = computeScore(answerData);
+    scoreResults.push({
+      id: `${checkRunId}-score`,
+      checkRunId,
+      totalScore: score.totalScore,
+      status: 'GOEDGEKEURD',
+      verdict: score.verdict,
+      rulesetVersion: score.rulesetVersion,
+      triggeredRules: JSON.stringify(score.triggeredRules),
+      adviceForContractor: score.adviceForContractor,
+      adviceForClient: score.adviceForClient
+    });
+
+    engagementId++;
+  }
+
+  // 20 ter beoordeling
+  for (let i = 0; i < 20; i++) {
+    const contractorId = String(((14 + i) % 50) + 1);
+    const organizationId = String(((14 + i) % 25) + 1);
+    const roleIndex = (14 + i) % roles.length;
+    const startDate = randomDate(new Date(2024, 0, 1), new Date(2024, 6, 1));
+    const endDate = randomDate(new Date(2024, 6, 1), new Date(2024, 11, 31));
+
+    engagements.push({
+      id: String(engagementId),
+      tenantId: '1',
+      organizationId,
+      contractorId,
+      roleTitle: roles[roleIndex],
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0],
+      rateHourly: 70 + Math.floor(Math.random() * 60),
+      metadata: {}
+    });
+
+    const checkRunId = `cr-${engagementId}`;
+    const timestamp = randomDate(new Date(2024, 0, 1), new Date()).toISOString();
+
+    checkRuns.push({
+      id: checkRunId,
+      tenantId: '1',
+      engagementId: String(engagementId),
+      questionnaireId: '1',
+      timestamp,
+      completedBy: 'System Admin'
+    });
+
+    const answerData = generateAnswersForStatus('TER_BEOORDELING');
+    Object.entries(answerData).forEach(([key, value]) => {
+      const question = ['substitution', 'instructions', 'workSchedule', 'integration', 'ownMaterials', 'financialRisk', 'ownClients', 'fixedSalary', 'contractualFreedom', 'refuseWork', 'platformDependency', 'ratingSystem', 'clientChoice', 'notes'].indexOf(key) + 1;
+      answers.push({
+        id: `${checkRunId}-${key}`,
+        checkRunId,
+        questionId: String(question),
+        value: typeof value === 'boolean' ? (value ? 'true' : 'false') : String(value)
+      });
+    });
+
+    const score = computeScore(answerData);
+    scoreResults.push({
+      id: `${checkRunId}-score`,
+      checkRunId,
+      totalScore: score.totalScore,
+      status: 'TER_BEOORDELING',
+      verdict: score.verdict,
+      rulesetVersion: score.rulesetVersion,
+      triggeredRules: JSON.stringify(score.triggeredRules),
+      adviceForContractor: score.adviceForContractor,
+      adviceForClient: score.adviceForClient
+    });
+
+    engagementId++;
+  }
+
+  // 14 afgekeurd
+  for (let i = 0; i < 14; i++) {
+    const contractorId = String(((34 + i) % 50) + 1);
+    const organizationId = String(((34 + i) % 25) + 1);
+    const roleIndex = (34 + i) % roles.length;
+    const startDate = randomDate(new Date(2024, 0, 1), new Date(2024, 6, 1));
+    const endDate = randomDate(new Date(2024, 6, 1), new Date(2024, 11, 31));
+
+    engagements.push({
+      id: String(engagementId),
+      tenantId: '1',
+      organizationId,
+      contractorId,
+      roleTitle: roles[roleIndex],
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0],
+      rateHourly: 70 + Math.floor(Math.random() * 60),
+      metadata: {}
+    });
+
+    const checkRunId = `cr-${engagementId}`;
+    const timestamp = randomDate(new Date(2024, 0, 1), new Date()).toISOString();
+
+    checkRuns.push({
+      id: checkRunId,
+      tenantId: '1',
+      engagementId: String(engagementId),
+      questionnaireId: '1',
+      timestamp,
+      completedBy: 'System Admin'
+    });
+
+    const answerData = generateAnswersForStatus('AFGEKEURD');
+    Object.entries(answerData).forEach(([key, value]) => {
+      const question = ['substitution', 'instructions', 'workSchedule', 'integration', 'ownMaterials', 'financialRisk', 'ownClients', 'fixedSalary', 'contractualFreedom', 'refuseWork', 'platformDependency', 'ratingSystem', 'clientChoice', 'notes'].indexOf(key) + 1;
+      answers.push({
+        id: `${checkRunId}-${key}`,
+        checkRunId,
+        questionId: String(question),
+        value: typeof value === 'boolean' ? (value ? 'true' : 'false') : String(value)
+      });
+    });
+
+    const score = computeScore(answerData);
+    scoreResults.push({
+      id: `${checkRunId}-score`,
+      checkRunId,
+      totalScore: score.totalScore,
+      status: 'AFGEKEURD',
+      verdict: score.verdict,
+      rulesetVersion: score.rulesetVersion,
+      triggeredRules: JSON.stringify(score.triggeredRules),
+      adviceForContractor: score.adviceForContractor,
+      adviceForClient: score.adviceForClient
+    });
+
+    engagementId++;
+  }
+
+  // 2 nog te beoordelen (geen checkRuns)
+  for (let i = 0; i < 2; i++) {
+    const contractorId = String(((48 + i) % 50) + 1);
+    const organizationId = String(((23 + i) % 25) + 1);
+    const roleIndex = (48 + i) % roles.length;
+    const startDate = randomDate(new Date(2024, 0, 1), new Date(2024, 6, 1));
+    const endDate = randomDate(new Date(2024, 6, 1), new Date(2024, 11, 31));
+
+    engagements.push({
+      id: String(engagementId),
+      tenantId: '1',
+      organizationId,
+      contractorId,
+      roleTitle: roles[roleIndex],
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0],
+      rateHourly: 70 + Math.floor(Math.random() * 60),
+      metadata: {}
+    });
+
+    engagementId++;
+  }
+
   return {
     version: DATA_VERSION,
     tenant: { id: '1', slug: 'demo', name: 'Demo Tenant' },
-    organizations: [
-      { id: '1', tenantId: '1', name: 'Acme Corp', type: 'CLIENT' }
-    ],
-    contractors: [
-      { id: '1', tenantId: '1', displayName: 'Jan de Vries', email: 'jan@example.com' }
-    ],
-    engagements: [
-      {
-        id: '1',
-        tenantId: '1',
-        organizationId: '1',
-        contractorId: '1',
-        roleTitle: 'Frontend Developer',
-        startDate: '2024-01-15',
-        endDate: '2024-12-31',
-        rateHourly: 85,
-        metadata: {}
-      }
-    ],
+    organizations,
+    contractors,
+    engagements,
     questionnaires: [
       {
         id: '1',
@@ -196,9 +484,9 @@ function getDefaultData() {
         options: null
       }
     ],
-    checkRuns: [],
-    answers: [],
-    scoreResults: [],
+    checkRuns,
+    answers,
+    scoreResults,
     auditEvents: [],
     archivedEngagements: [],
     archivedContractors: [],
