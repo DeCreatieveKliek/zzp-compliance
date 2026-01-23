@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Calendar, AlertCircle, CheckCircle, AlertTriangle, Plus, Clock, Users, Building, UserPlus, Sparkles, Shield, TrendingUp, Moon, Sun, Home, Trash2, BarChart3, Activity, FileText, X, Search, Archive, Download, Mail, Filter, ChevronDown } from 'lucide-react';
+import { Calendar, AlertCircle, CheckCircle, AlertTriangle, Plus, Clock, Users, Building, UserPlus, Sparkles, Shield, TrendingUp, Home, Trash2, BarChart3, Activity, FileText, X, Search, Archive, Download, Mail, Filter, ChevronDown } from 'lucide-react';
 
 // Mock data store
 const DATA_VERSION = '4.0-multi-arrest';
@@ -1304,7 +1304,7 @@ const PaymentView = ({ onPaymentComplete }: any) => {
 };
 
 // Recent Activity Component
-const RecentActivity = ({ data, darkMode }: any) => {
+const RecentActivity = ({ data }: any) => {
   const recentEvents = (data.auditEvents || []).slice(0, 10);
 
   const getActionIcon = (action: string) => {
@@ -1427,7 +1427,7 @@ const RecentActivity = ({ data, darkMode }: any) => {
   );
 };
 
-const Dashboard = ({ data, onNavigate, darkMode }: any) => {
+const Dashboard = ({ data, onNavigate }: any) => {
   const totalEngagements = data.engagements.length;
   const totalContractors = data.contractors.length;
   const totalOrganizations = data.organizations.length;
@@ -1561,7 +1561,7 @@ const Dashboard = ({ data, onNavigate, darkMode }: any) => {
       </div>
 
       {/* Recent Activity */}
-      <RecentActivity data={data} darkMode={darkMode} />
+      <RecentActivity data={data} />
 
       {/* Quick Actions - ZenoZorg Style */}
       <div>
@@ -1949,7 +1949,7 @@ const ArchivedView = ({ data, onUnarchive, onUnarchiveContractor, onUnarchiveOrg
 };
 
 // Management Hub - keuze tussen ZZP'ers, Organisaties en Overzicht
-const PeopleManagement = ({ data, onUpdate, darkMode, onNavigate }: any) => {
+const PeopleManagement = ({ data, onUpdate, onNavigate }: any) => {
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-2xl p-12 border border-gray-100 dark:border-gray-700">
@@ -2004,7 +2004,7 @@ const PeopleManagement = ({ data, onUpdate, darkMode, onNavigate }: any) => {
 };
 
 // Contractors Management met zoek en bulk operaties
-const ContractorsManagement = ({ data, onUpdate, onBack, darkMode }: any) => {
+const ContractorsManagement = ({ data, onUpdate, onBack }: any) => {
   const [showAddContractor, setShowAddContractor] = useState(false);
   const [deleteItem, setDeleteItem] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -2254,7 +2254,7 @@ const ContractorsManagement = ({ data, onUpdate, onBack, darkMode }: any) => {
 };
 
 // Organizations Management met zoek en bulk operaties
-const OrganizationsManagement = ({ data, onUpdate, onBack, darkMode }: any) => {
+const OrganizationsManagement = ({ data, onUpdate, onBack }: any) => {
   const [showAddOrg, setShowAddOrg] = useState(false);
   const [deleteItem, setDeleteItem] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -3241,17 +3241,13 @@ export default function ZZPComplianceApp() {
   const [selectedEngagement, setSelectedEngagement] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState('payment');
   const [showAddEngagement, setShowAddEngagement] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
   const [isPaid, setIsPaid] = useState(false);
 
   useEffect(() => {
-    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
     const paymentStatus = localStorage.getItem('zzp_payment_status') === 'paid';
 
-    setDarkMode(savedDarkMode);
-    if (savedDarkMode) {
-      document.documentElement.classList.add('dark');
-    }
+    // Altijd dark mode activeren
+    document.documentElement.classList.add('dark');
 
     setIsPaid(paymentStatus);
     if (paymentStatus) {
@@ -3260,17 +3256,6 @@ export default function ZZPComplianceApp() {
       setCurrentView('payment');
     }
   }, []);
-
-  const toggleDarkMode = () => {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    localStorage.setItem('darkMode', String(newDarkMode));
-    if (newDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  };
 
   const handleUpdate = (newData: any) => {
     setData(newData);
@@ -3402,7 +3387,7 @@ export default function ZZPComplianceApp() {
   }
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-[#fafafa]'}`}>
+    <div className="min-h-screen dark bg-gray-900">
       {/* Professional ZenoZorg Header */}
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -3485,19 +3470,6 @@ export default function ZZPComplianceApp() {
                   </div>
                 </button>
               </nav>
-
-              {/* Dark Mode Toggle */}
-              <button
-                onClick={toggleDarkMode}
-                className="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
-                title={darkMode ? 'Schakel naar light mode' : 'Schakel naar dark mode'}
-              >
-                {darkMode ? (
-                  <Sun className="w-5 h-5 text-yellow-400" />
-                ) : (
-                  <Moon className="w-5 h-5 text-[#7a00df]" />
-                )}
-              </button>
             </div>
           </div>
         </div>
@@ -3506,7 +3478,7 @@ export default function ZZPComplianceApp() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
         {currentView === 'dashboard' && (
-          <Dashboard data={data} onNavigate={setCurrentView} darkMode={darkMode} />
+          <Dashboard data={data} onNavigate={setCurrentView} />
         )}
 
         {currentView === 'engagements' && !selectedEngagement && (
@@ -3529,7 +3501,7 @@ export default function ZZPComplianceApp() {
         )}
 
         {currentView === 'people' && (
-          <PeopleManagement data={data} onUpdate={handleUpdate} darkMode={darkMode} onNavigate={setCurrentView} />
+          <PeopleManagement data={data} onUpdate={handleUpdate} onNavigate={setCurrentView} />
         )}
 
         {currentView === 'contractors' && (
@@ -3537,7 +3509,6 @@ export default function ZZPComplianceApp() {
             data={data}
             onUpdate={handleUpdate}
             onBack={() => setCurrentView('people')}
-            darkMode={darkMode}
           />
         )}
 
@@ -3546,7 +3517,6 @@ export default function ZZPComplianceApp() {
             data={data}
             onUpdate={handleUpdate}
             onBack={() => setCurrentView('people')}
-            darkMode={darkMode}
           />
         )}
 
