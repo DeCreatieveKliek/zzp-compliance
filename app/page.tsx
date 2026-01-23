@@ -3048,6 +3048,10 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
   const [showExport, setShowExport] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Set<string>>(new Set());
   const [showValidationError, setShowValidationError] = useState(false);
+  const [showReassessPassword, setShowReassessPassword] = useState(false);
+  const [reassessPassword, setReassessPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [isReassessing, setIsReassessing] = useState(false);
 
   const contractor = data.contractors.find((c: any) => c.id === engagement.contractorId);
   const organization = data.organizations.find((o: any) => o.id === engagement.organizationId);
@@ -3059,6 +3063,48 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
     .sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
 
   const scoreResult = latestCheckRun ? data.scoreResults.find((sr: any) => sr.checkRunId === latestCheckRun.id) : null;
+
+  // Load existing answers if there's a score result
+  useEffect(() => {
+    if (latestCheckRun && !isReassessing) {
+      const existingAnswers = data.answers.filter((a: any) => a.checkRunId === latestCheckRun.id);
+      const answersMap: any = {};
+      existingAnswers.forEach((answer: any) => {
+        const question = questions.find((q: any) => q.id === answer.questionId);
+        if (question) {
+          if (question.type === 'BOOLEAN') {
+            answersMap[question.key] = answer.value === 'true';
+          } else {
+            answersMap[question.key] = answer.value;
+          }
+        }
+      });
+      setAnswers(answersMap);
+      setShowResults(true);
+    }
+  }, [latestCheckRun, data.answers, questions, isReassessing]);
+
+  const handleReassess = () => {
+    setShowReassessPassword(true);
+  };
+
+  const handleReassessConfirm = () => {
+    if (reassessPassword === '123456789') {
+      setIsReassessing(true);
+      setShowResults(false);
+      setShowReassessPassword(false);
+      setReassessPassword('');
+      setPasswordError('');
+    } else {
+      setPasswordError('Onjuist wachtwoord!');
+    }
+  };
+
+  const handleCancelReassess = () => {
+    setShowReassessPassword(false);
+    setReassessPassword('');
+    setPasswordError('');
+  };
 
   const handleAnswerChange = (questionKey: string, value: any) => {
     setAnswers({ ...answers, [questionKey]: value });
@@ -3153,13 +3199,22 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
           >
             ← Terug naar overzicht
           </button>
-          <button
-            onClick={() => setShowExport(true)}
-            className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 font-semibold shadow-lg shadow-blue-500/50 transition-all duration-200"
-          >
-            <Download className="w-5 h-5" />
-            Exporteer Rapport
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={handleReassess}
+              className="flex items-center gap-2 bg-gradient-to-r from-orange-600 to-amber-600 text-white px-6 py-3 rounded-xl hover:from-orange-700 hover:to-amber-700 font-semibold shadow-lg shadow-orange-500/50 transition-all duration-200"
+            >
+              <Shield className="w-5 h-5" />
+              Herbeoordelen
+            </button>
+            <button
+              onClick={() => setShowExport(true)}
+              className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 font-semibold shadow-lg shadow-blue-500/50 transition-all duration-200"
+            >
+              <Download className="w-5 h-5" />
+              Exporteer Rapport
+            </button>
+          </div>
         </div>
 
         {showExport && (
@@ -3170,6 +3225,73 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
             contractor={contractor}
             organization={organization}
           />
+        )}
+
+        {showReassessPassword && (
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-md transform animate-in slide-in-from-bottom-4 duration-300">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl">
+                  <Shield className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Herbeoordeling Bevestigen
+                </h3>
+              </div>
+
+              <div className="space-y-6">
+                <div className="p-4 bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-200 dark:border-orange-800 rounded-xl">
+                  <p className="text-orange-900 dark:text-orange-200 font-semibold">
+                    Let op!
+                  </p>
+                  <p className="text-orange-700 dark:text-orange-300 text-sm mt-2">
+                    U staat op het punt deze beoordeling te herzien. Voer het master wachtwoord in om door te gaan.
+                  </p>
+                </div>
+
+                {passwordError && (
+                  <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                    <p className="text-sm text-red-600 dark:text-red-400 text-center">{passwordError}</p>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Master Wachtwoord
+                  </label>
+                  <input
+                    type="password"
+                    value={reassessPassword}
+                    onChange={(e) => {
+                      setReassessPassword(e.target.value);
+                      setPasswordError('');
+                    }}
+                    onKeyPress={(e) => e.key === 'Enter' && handleReassessConfirm()}
+                    className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
+                    placeholder="Voer master wachtwoord in"
+                    autoFocus
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={handleCancelReassess}
+                    className="flex-1 px-6 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 font-semibold transition-all duration-200 dark:text-white"
+                  >
+                    Annuleren
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleReassessConfirm}
+                    className="flex-1 bg-gradient-to-r from-orange-600 to-amber-600 text-white px-6 py-3 rounded-xl hover:from-orange-700 hover:to-amber-700 font-semibold shadow-lg shadow-orange-500/50 transition-all duration-200"
+                  >
+                    Bevestigen
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-10 border-2 border-gray-200 dark:border-gray-700">
@@ -3411,8 +3533,18 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
 
         <div className="space-y-6">
           <div className="mb-6">
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Nieuwe Beoordeling</h3>
-            <p className="text-gray-600 dark:text-gray-400">Beantwoord de vragen volgens de criteria uit het Deliveroo-arrest, Groen/Schoevers-arrest en Helpling-arrest</p>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              {isReassessing ? 'Herbeoordeling' : (scoreResult ? 'Huidige Beoordeling' : 'Nieuwe Beoordeling')}
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              {isReassessing
+                ? 'Wijzig de antwoorden en dien opnieuw in voor herbeoordeling'
+                : (scoreResult
+                  ? 'De antwoorden van de laatste beoordeling worden hieronder getoond'
+                  : 'Beantwoord de vragen volgens de criteria uit het Deliveroo-arrest, Groen/Schoevers-arrest en Helpling-arrest'
+                )
+              }
+            </p>
           </div>
 
           {showValidationError && (
@@ -3499,12 +3631,22 @@ const EngagementDetail = ({ engagement, data, onUpdate, onBack }: any) => {
             );
           })}
 
-          <button
-            onClick={handleSubmit}
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-xl hover:from-blue-700 hover:to-indigo-700 font-bold text-lg shadow-lg shadow-blue-500/50 transition-all duration-200 hover:scale-[1.02]"
-          >
-            Beoordeling Indienen
-          </button>
+          {(isReassessing || !scoreResult) && (
+            <button
+              onClick={handleSubmit}
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-xl hover:from-blue-700 hover:to-indigo-700 font-bold text-lg shadow-lg shadow-blue-500/50 transition-all duration-200 hover:scale-[1.02]"
+            >
+              {isReassessing ? 'Herbeoordeling Indienen' : 'Beoordeling Indienen'}
+            </button>
+          )}
+
+          {scoreResult && !isReassessing && (
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl text-center">
+              <p className="text-blue-900 dark:text-blue-100 font-medium">
+                Deze opdracht is al beoordeeld. Klik op "Bekijk details →" om het rapport te zien, of gebruik de "Herbeoordelen" knop om een nieuwe beoordeling uit te voeren.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
