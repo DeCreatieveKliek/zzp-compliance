@@ -4,10 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && prisma db push --accept-data-loss && next build",
+    "build": "npm run migrate:deploy && next build",
     "postinstall": "prisma generate",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "migrate:deploy": "node scripts/migrate-deploy.mjs",
+    "build:production": "npm run build",
+    "start:production": "npm run migrate:deploy && next start",
+    "vercel-build": "npm run build:production"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
