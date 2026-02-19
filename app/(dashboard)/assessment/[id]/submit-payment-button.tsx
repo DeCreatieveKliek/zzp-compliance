@@ -18,13 +18,19 @@ export default function SubmitPaymentButton({ assessmentId }: { assessmentId: st
         body: JSON.stringify({ assessmentId }),
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      let data: { error?: string; url?: string } = {};
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error(`Server fout (${res.status}): Mollie API key mogelijk niet ingesteld in Vercel.`);
+      }
 
       if (!res.ok) {
         throw new Error(data.error || 'Betaling starten mislukt');
       }
 
-      window.location.href = data.url;
+      if (data.url) window.location.href = data.url;
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Er is iets misgegaan');
       setLoading(false);

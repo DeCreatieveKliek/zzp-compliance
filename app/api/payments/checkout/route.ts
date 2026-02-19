@@ -26,20 +26,27 @@ export async function POST(req: NextRequest) {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
-  const molliePayment = await getMollie().payments.create({
-    amount: {
-      currency: 'EUR',
-      value: ASSESSMENT_PRICE_DISPLAY,
-    },
-    description: `ZZP Compliance Beoordeling — ${assessment.title}`,
-    redirectUrl: `${appUrl}/payment/success?assessment_id=${assessmentId}`,
-    webhookUrl: `${appUrl}/api/payments/webhook`,
-    metadata: {
-      assessmentId,
-      userId: session.user.id,
-    },
-    locale: Locale.nl_NL,
-  });
+  let molliePayment;
+  try {
+    molliePayment = await getMollie().payments.create({
+      amount: {
+        currency: 'EUR',
+        value: ASSESSMENT_PRICE_DISPLAY,
+      },
+      description: `ZZP Compliance Beoordeling — ${assessment.title}`,
+      redirectUrl: `${appUrl}/payment/success?assessment_id=${assessmentId}`,
+      webhookUrl: `${appUrl}/api/payments/webhook`,
+      metadata: {
+        assessmentId,
+        userId: session.user.id,
+      },
+      locale: Locale.nl_NL,
+    });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Mollie fout';
+    console.error('Mollie create payment error:', msg);
+    return NextResponse.json({ error: `Betaling aanmaken mislukt: ${msg}` }, { status: 500 });
+  }
 
   await prisma.payment.upsert({
     where: { assessmentId },
