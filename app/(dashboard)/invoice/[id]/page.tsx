@@ -61,8 +61,8 @@ export default async function InvoicePage({
                 <Shield className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p className="font-black text-lg leading-tight">ZZP Compliance</p>
-                <p className="text-blue-200 text-xs">zzpcompliance.nl</p>
+                <p className="font-black text-lg leading-tight">De Creatieve Kliek</p>
+                <p className="text-blue-200 text-xs">decreatievekliek.nl</p>
               </div>
             </div>
             <div className="text-right">
@@ -75,10 +75,17 @@ export default async function InvoicePage({
         <div className="px-8 py-6">
           {/* Meta row */}
           <div className="grid grid-cols-2 gap-6 mb-8">
-            {/* Factuurgegevens */}
+            {/* Leveranciersgegevens */}
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Factuurgegevens</p>
-              <div className="space-y-1 text-sm text-gray-700">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Van</p>
+              <div className="space-y-0.5 text-sm text-gray-700">
+                <p className="font-semibold text-gray-900">De Creatieve Kliek</p>
+                <p className="text-gray-600">Lekdijk 27</p>
+                <p className="text-gray-600">2865 LA Ammerstol</p>
+                <p className="text-gray-600">info@decreatievekliek.nl</p>
+                <p className="text-gray-600">decreatievekliek.nl</p>
+              </div>
+              <div className="mt-4 space-y-1 text-sm text-gray-700">
                 <div className="flex gap-2">
                   <span className="text-gray-400 w-24 flex-shrink-0">Factuurdatum</span>
                   <span className="font-medium">{formatDate(invoice.issuedAt)}</span>
@@ -96,7 +103,7 @@ export default async function InvoicePage({
 
             {/* Klantgegevens */}
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Klantgegevens</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Aan</p>
               <div className="space-y-1 text-sm text-gray-700">
                 <p className="font-semibold text-gray-900">{invoice.customerName}</p>
                 {invoice.companyName && (
@@ -173,7 +180,7 @@ export default async function InvoicePage({
               </div>
             </div>
             <p className="text-xs text-gray-400 text-center mt-6">
-              ZZP Compliance · KvK: 12345678 · BTW: NL123456789B01 · zzpcompliance.nl
+              De Creatieve Kliek · Lekdijk 27, 2865 LA Ammerstol · KvK: 24455866 · BTW: NL005211678B97 · decreatievekliek.nl
             </p>
           </div>
         </div>
