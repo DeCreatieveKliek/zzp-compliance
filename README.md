@@ -5,14 +5,15 @@
 De deployment-flow is zo ingericht dat database-migraties **altijd vóór de app-build** draaien:
 
 1. `npm run migrate:deploy`
-2. `npm run build` (via `npm run build:production` / `npm run vercel-build`)
+2. `npm run build` (standaard; draait eerst migraties)
 3. Runtime start (`npm run start` of `npm run start:production`)
 
 ### Scripts
 
 - `npm run migrate:deploy`: voert Prisma deploy-migraties uit met logging en env-checks.
-- `npm run build:production`: draait eerst migraties, daarna `next build`.
-- `npm run vercel-build`: entrypoint voor Vercel build; gebruikt `build:production`.
+- `npm run build`: primaire build voor lokaal én Vercel; voert eerst migraties uit en draait daarna `next build`.
+- `npm run build:production`: alias naar `npm run build` voor backwards compatibility.
+- `npm run vercel-build`: entrypoint-alias naar `build:production`.
 - `npm run start:production`: optionele runtime-flow die opnieuw migraties draait vóór `next start`.
 
 ## Vercel environment variables
