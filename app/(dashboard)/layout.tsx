@@ -22,7 +22,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shadow-sm">
+      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shadow-sm print:hidden">
         <div className="p-6 border-b border-gray-200">
           <Link href="/dashboard" className="flex items-center gap-3 group">
             <div className="p-2 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl shadow-lg shadow-blue-500/30">

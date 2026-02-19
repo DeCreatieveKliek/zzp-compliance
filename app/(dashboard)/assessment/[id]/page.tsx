@@ -12,8 +12,64 @@ import {
   Lock,
   TrendingUp,
   FileText,
+  User,
+  Building2,
 } from 'lucide-react';
 import SubmitPaymentButton from './submit-payment-button';
+import PrintAssessmentButton from './print-assessment-button';
+
+const adviceConfig = {
+  GROEN: {
+    zzp: [
+      'Documenteer uw zelfstandigheid: bewaar contracten, facturen en offertes zorgvuldig.',
+      'Werk bij voorkeur voor meerdere opdrachtgevers om afhankelijkheid te beperken.',
+      'Vernieuw uw modelovereenkomst tijdig (uiterlijk elke 2 jaar).',
+      'Controleer jaarlijks of uw KvK-inschrijving en verzekeringen nog actueel zijn.',
+      'Blijf kritisch op nieuwe opdrachten: toets ook toekomstige situaties aan de DBA-normen.',
+    ],
+    bedrijf: [
+      'De samenwerking voldoet aan de normen. Blijf de feitelijke situatie periodiek monitoren.',
+      'Gebruik altijd een actuele, goedgekeurde modelovereenkomst.',
+      'Leg werkafspraken schriftelijk vast om toekomstige discussies te voorkomen.',
+      'Wees alert bij verlenging: toets de situatie dan opnieuw aan de DBA-criteria.',
+    ],
+  },
+  ORANJE: {
+    zzp: [
+      'Bespreek de geconstateerde risicofactoren open met uw opdrachtgever.',
+      'Zorg dat u zelf bepaalt hóe het werk wordt uitgevoerd – vermijd strikte werkinstructies.',
+      'Vermijd vaste werktijden en aanwezigheidsplicht in uw contract.',
+      'Draag aantoonbaar financieel ondernemersrisico (bijv. eigen materiaal, aansprakelijkheid).',
+      "Overweeg een goedgekeurde modelovereenkomst (bijv. VNO-NCW of FNV) in te zetten.",
+      'Raadpleeg een belastingadviseur of juridisch adviseur voor persoonlijk advies.',
+    ],
+    bedrijf: [
+      'Herzie de samenwerking op de geconstateerde risicofactoren.',
+      "Geef de ZZP'er meer vrijheid in werkwijze, planning en werktijden.",
+      'Verwijder eventuele exclusiviteitsclausules uit het contract.',
+      'Overweeg een officieel goedgekeurde modelovereenkomst te gebruiken.',
+      'Schakel een HR- of juridisch adviseur in om de arbeidsrelatie te verduidelijken.',
+    ],
+  },
+  ROOD: {
+    zzp: [
+      'Neem direct actie: het risico op schijnzelfstandigheid is significant.',
+      'Raadpleeg een arbeidsrechtelijk advocaat of belastingadviseur.',
+      'Overweeg of omzetting naar een dienstverband wenselijk of noodzakelijk is.',
+      'Wees alert: de Belastingdienst kan met terugwerkende kracht loonheffingen opleggen.',
+      'Onderzoek of de werkstructuur fundamenteel kan worden aangepast om risico te verlagen.',
+      'U kunt zelf een handhavingsverzoek indienen bij de Belastingdienst voor duidelijkheid.',
+    ],
+    bedrijf: [
+      'Urgent: de arbeidsrelatie vertoont sterke kenmerken van een dienstverband.',
+      'Herzie de arbeidsrelatie direct en schakel juridisch advies in.',
+      "Overweeg het aanbieden van een arbeidsovereenkomst aan de ZZP'er.",
+      'Pas de aansturing, werktijden en werkplekinrichting aan om risico te beperken.',
+      'Let op: bij schijnzelfstandigheid riskeert u naheffingen loonbelasting én boetes.',
+      'Schakel direct een HR-adviseur of arbeidsrechtelijk specialist in.',
+    ],
+  },
+};
 
 export default async function AssessmentDetailPage({
   params,
@@ -40,7 +96,7 @@ export default async function AssessmentDetailPage({
     GROEN: {
       bg: 'from-emerald-500 to-green-500',
       light: 'bg-emerald-50 border-emerald-200',
-      text: 'text-emerald-700',
+      text: 'text-emerald-600',
       icon: CheckCircle,
       label: 'Laag risico',
       description:
@@ -49,7 +105,7 @@ export default async function AssessmentDetailPage({
     ORANJE: {
       bg: 'from-amber-500 to-orange-500',
       light: 'bg-amber-50 border-amber-200',
-      text: 'text-amber-700',
+      text: 'text-amber-600',
       icon: AlertTriangle,
       label: 'Gemiddeld risico',
       description:
@@ -58,7 +114,7 @@ export default async function AssessmentDetailPage({
     ROOD: {
       bg: 'from-red-500 to-rose-500',
       light: 'bg-red-50 border-red-200',
-      text: 'text-red-700',
+      text: 'text-red-600',
       icon: AlertCircle,
       label: 'Hoog risico',
       description:
@@ -68,19 +124,20 @@ export default async function AssessmentDetailPage({
 
   const config = riskConfig[scoreResult.status] || riskConfig.ORANJE;
   const Icon = config.icon;
+  const advice = adviceConfig[scoreResult.status] || adviceConfig.ORANJE;
 
   return (
     <div className="p-8 max-w-3xl">
       {/* Back */}
       <Link
         href="/dashboard"
-        className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 text-sm font-medium mb-6 transition-colors"
+        className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 text-sm font-medium mb-6 transition-colors print:hidden"
       >
         <ArrowLeft className="w-4 h-4" />
         Terug naar overzicht
       </Link>
 
-      {/* Title + invoice link */}
+      {/* Title + action buttons */}
       <div className="mb-8 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{assessment.title}</h1>
@@ -93,14 +150,19 @@ export default async function AssessmentDetailPage({
             })}
           </p>
         </div>
-        {isPaid && assessment.invoice && (
-          <Link
-            href={`/invoice/${assessment.invoice.id}`}
-            className="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
-          >
-            <FileText className="w-4 h-4" />
-            Factuur
-          </Link>
+        {isPaid && (
+          <div className="flex items-center gap-2 print:hidden">
+            {assessment.invoice && (
+              <Link
+                href={`/invoice/${assessment.invoice.id}`}
+                className="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                <FileText className="w-4 h-4" />
+                Factuur
+              </Link>
+            )}
+            <PrintAssessmentButton />
+          </div>
         )}
       </div>
 
@@ -122,6 +184,51 @@ export default async function AssessmentDetailPage({
             <div className="mt-4 pt-4 border-t border-white/20 flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-white/70" />
               <span className="text-white/70 text-xs">Risicoscore: {scoreResult.totalScore} punten</span>
+            </div>
+          </div>
+
+          {/* Advice section */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h2 className="font-semibold text-gray-900">Aanbevelingen</h2>
+              <p className="text-xs text-gray-500 mt-0.5">Wat u kunt doen op basis van uw risicostatus</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+              {/* ZZP'er */}
+              <div className="p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <User className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <p className="font-semibold text-sm text-gray-900">Voor de ZZP&apos;er</p>
+                </div>
+                <ul className="space-y-2.5">
+                  {advice.zzp.map((tip, i) => (
+                    <li key={i} className="flex items-start gap-2.5 text-sm text-gray-600">
+                      <Icon className={`w-4 h-4 flex-shrink-0 mt-0.5 ${config.text}`} />
+                      <span>{tip}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Bedrijf */}
+              <div className="p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 bg-indigo-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Building2 className="w-4 h-4 text-indigo-600" />
+                  </div>
+                  <p className="font-semibold text-sm text-gray-900">Voor het bedrijf</p>
+                </div>
+                <ul className="space-y-2.5">
+                  {advice.bedrijf.map((tip, i) => (
+                    <li key={i} className="flex items-start gap-2.5 text-sm text-gray-600">
+                      <Icon className={`w-4 h-4 flex-shrink-0 mt-0.5 ${config.text}`} />
+                      <span>{tip}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
 
