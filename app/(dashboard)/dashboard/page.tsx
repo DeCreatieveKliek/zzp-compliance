@@ -1,7 +1,7 @@
 import { auth } from '@/auth';
 import { prisma } from '@/lib/db';
 import Link from 'next/link';
-import { PlusCircle, CheckCircle, AlertTriangle, AlertCircle, Clock, ArrowRight, FileText } from 'lucide-react';
+import { PlusCircle, CheckCircle, AlertTriangle, AlertCircle, Clock, FileText } from 'lucide-react';
 
 function RiskBadge({ level }: { level: string | null }) {
   if (!level) return <span className="text-xs text-gray-400 font-medium">Onbekend</span>;
@@ -117,7 +117,11 @@ export default async function DashboardPage() {
         ) : (
           <div className="divide-y divide-gray-100">
             {assessments.map((assessment) => (
-              <div key={assessment.id} className="flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors">
+              <Link
+                key={assessment.id}
+                href={`/assessment/${assessment.id}`}
+                className="flex items-center justify-between px-6 py-4 hover:bg-blue-50/50 transition-colors cursor-pointer group"
+              >
                 <div className="flex items-center gap-4">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
                     assessment.status === 'PAID'
@@ -131,7 +135,7 @@ export default async function DashboardPage() {
                     )}
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 text-sm">{assessment.title}</p>
+                    <p className="font-semibold text-gray-900 text-sm group-hover:text-blue-700 transition-colors">{assessment.title}</p>
                     <p className="text-xs text-gray-400 mt-0.5">
                       {new Date(assessment.createdAt).toLocaleDateString('nl-NL', {
                         day: 'numeric',
@@ -150,15 +154,11 @@ export default async function DashboardPage() {
                       Concept
                     </span>
                   )}
-                  <Link
-                    href={`/assessment/${assessment.id}`}
-                    className="flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm font-medium"
-                  >
-                    {assessment.status === 'PAID' ? 'Bekijken' : 'Indienen'}
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
+                  <span className="text-sm font-medium text-blue-600 group-hover:text-blue-700 transition-colors">
+                    {assessment.status === 'PAID' ? 'Bekijken →' : 'Indienen →'}
+                  </span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

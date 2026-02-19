@@ -63,9 +63,9 @@ export async function POST(req: NextRequest) {
         const count = await prisma.invoice.count();
         const invoiceNumber = `INV-${year}-${String(count + 1).padStart(4, '0')}`;
 
-        const amount = 2479; // ex BTW: €24.79
-        const vatAmount = 520; // 21% BTW: €5.20
-        const totalAmount = 2999; // incl. BTW: €29.99
+        const amount = 826; // ex BTW: €8.26
+        const vatAmount = 174; // 21% BTW: €1.74
+        const totalAmount = 1000; // incl. BTW: €10.00
 
         await prisma.invoice.create({
           data: {
@@ -78,6 +78,10 @@ export async function POST(req: NextRequest) {
             customerName: user.name,
             customerEmail: user.email,
             companyName: user.companyName ?? null,
+            customerStreet: user.street ?? null,
+            customerHouseNumber: user.houseNumber ?? null,
+            customerPostalCode: user.postalCode ?? null,
+            customerCity: user.city ?? null,
           },
         });
       }

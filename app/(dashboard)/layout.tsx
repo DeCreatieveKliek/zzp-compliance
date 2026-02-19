@@ -1,7 +1,7 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { Shield, LayoutDashboard, PlusCircle, ClipboardList, Receipt, LogOut } from 'lucide-react';
+import { Shield, LayoutDashboard, PlusCircle, ClipboardList, Receipt, LogOut, UserCircle } from 'lucide-react';
 import { signOut } from '@/auth';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -77,6 +77,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
           >
             <Receipt className="w-5 h-5 group-hover:scale-110 transition-transform" />
             <span className="text-sm">Facturen</span>
+          </Link>
+          <Link
+            href="/profiel"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 hover:bg-blue-50 hover:text-blue-700 font-medium transition-all duration-200 group"
+          >
+            <UserCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            <span className="text-sm">Mijn profiel</span>
           </Link>
         </nav>
 

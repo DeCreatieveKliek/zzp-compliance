@@ -13,6 +13,10 @@ model User {
   password    String
   type        String   @default("ZZP") // ZZP or BEDRIJF
   companyName String?
+  street      String?
+  houseNumber String?
+  postalCode  String?
+  city        String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -44,7 +48,7 @@ model Payment {
   assessmentId    String   @unique
   molliePaymentId String?  @unique
   status          String   @default("PENDING") // PENDING, PAID, FAILED, EXPIRED
-  amount          Int      @default(2999) // cents (€29.99)
+  amount          Int      @default(1000) // cents (€10.00)
   currency        String   @default("eur")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -54,19 +58,23 @@ model Payment {
 }
 
 model Invoice {
-  id             String   @id @default(cuid())
-  invoiceNumber  String   @unique // e.g. INV-2024-0001
-  userId         String
-  assessmentId   String   @unique
-  amount         Int      @default(2999) // cents
-  vatAmount      Int      @default(629)  // 21% BTW, cents
-  totalAmount    Int      @default(3628) // incl. BTW
-  currency       String   @default("EUR")
-  status         String   @default("PAID") // PAID
-  customerName   String
-  customerEmail  String
-  companyName    String?
-  description    String   @default("ZZP Compliance Beoordeling")
+  id                  String   @id @default(cuid())
+  invoiceNumber       String   @unique // e.g. INV-2024-0001
+  userId              String
+  assessmentId        String   @unique
+  amount              Int      @default(826)  // cents ex BTW (€8.26)
+  vatAmount           Int      @default(174)  // 21% BTW, cents (€1.74)
+  totalAmount         Int      @default(1000) // incl. BTW (€10.00)
+  currency            String   @default("EUR")
+  status              String   @default("PAID") // PAID
+  customerName        String
+  customerEmail       String
+  companyName         String?
+  customerStreet      String?
+  customerHouseNumber String?
+  customerPostalCode  String?
+  customerCity        String?
+  description         String   @default("ZZP Compliance Beoordeling")
   issuedAt       DateTime @default(now())
   createdAt      DateTime @default(now())
 

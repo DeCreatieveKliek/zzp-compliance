@@ -102,6 +102,16 @@ export default async function InvoicePage({
                 {invoice.companyName && (
                   <p className="text-gray-600">{invoice.companyName}</p>
                 )}
+                {(invoice.customerStreet || invoice.customerHouseNumber) && (
+                  <p className="text-gray-600">
+                    {[invoice.customerStreet, invoice.customerHouseNumber].filter(Boolean).join(' ')}
+                  </p>
+                )}
+                {(invoice.customerPostalCode || invoice.customerCity) && (
+                  <p className="text-gray-600">
+                    {[invoice.customerPostalCode, invoice.customerCity].filter(Boolean).join(' ')}
+                  </p>
+                )}
                 <p className="text-gray-600">{invoice.customerEmail}</p>
               </div>
             </div>

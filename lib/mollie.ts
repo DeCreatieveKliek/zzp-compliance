@@ -1,7 +1,7 @@
 import { createMollieClient } from '@mollie/api-client';
 
-export const ASSESSMENT_PRICE = 2999; // €29.99 in cents
-export const ASSESSMENT_PRICE_DISPLAY = '29.99';
+export const ASSESSMENT_PRICE = 1000; // €10.00 in cents
+export const ASSESSMENT_PRICE_DISPLAY = '10.00';
 
 let mollieClient: ReturnType<typeof createMollieClient> | null = null;
 
