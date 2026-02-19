@@ -3,13 +3,15 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { CheckCircle, Loader2, ArrowRight, Shield, FileText } from 'lucide-react';
+import { CheckCircle, Loader2, ArrowRight, Shield, FileText, XCircle, AlertTriangle, RefreshCw } from 'lucide-react';
+
+type PageStatus = 'loading' | 'success' | 'cancelled' | 'failed' | 'error';
 
 function SuccessContent() {
   const searchParams = useSearchParams();
   const assessmentId = searchParams.get('assessment_id');
 
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [status, setStatus] = useState<PageStatus>('loading');
   const [invoiceId, setInvoiceId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -18,32 +20,48 @@ function SuccessContent() {
       return;
     }
 
-    // Poll until the webhook has processed the payment (max ~10s)
     let attempts = 0;
+
     const poll = async () => {
       attempts++;
       try {
         const res = await fetch(`/api/assessments/${assessmentId}`);
         if (res.ok) {
           const data = await res.json();
-          if (data.assessment?.status === 'PAID') {
-            // Also fetch the invoice ID if available
-            if (data.assessment?.invoice?.id) {
-              setInvoiceId(data.assessment.invoice.id);
+          const assessment = data.assessment;
+          const paymentStatus = assessment?.payment?.status as string | undefined;
+
+          if (assessment?.status === 'PAID') {
+            if (assessment.invoice?.id) {
+              setInvoiceId(assessment.invoice.id);
             }
             setStatus('success');
             return;
           }
+
+          // Payment explicitly failed or expired
+          if (paymentStatus === 'FAILED' || paymentStatus === 'EXPIRED') {
+            setStatus('failed');
+            return;
+          }
+
+          // Mollie marks cancelled payments as 'failed' in the webhook,
+          // but some providers use a cancelled status — treat both as failed.
+          if (paymentStatus === 'CANCELED' || paymentStatus === 'CANCELLED') {
+            setStatus('cancelled');
+            return;
+          }
         }
       } catch {
-        // ignore
+        // network hiccup — keep polling
       }
 
-      if (attempts < 10) {
-        setTimeout(poll, 1500);
+      if (attempts < 12) {
+        // After a few polls check quicker (1s), then slower (2s)
+        setTimeout(poll, attempts <= 4 ? 1000 : 2000);
       } else {
-        // Show success anyway — webhook may arrive slightly later
-        setStatus('success');
+        // Timed out without a definitive status — show a neutral error
+        setStatus('error');
       }
     };
 
@@ -55,7 +73,71 @@ function SuccessContent() {
       <div className="text-center">
         <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
         <h2 className="text-xl font-bold text-gray-900">Betaling verwerken...</h2>
-        <p className="text-gray-500 text-sm mt-2">Even geduld, uw beoordeling wordt verwerkt.</p>
+        <p className="text-gray-500 text-sm mt-2">Even geduld, uw betaling wordt gecontroleerd.</p>
+      </div>
+    );
+  }
+
+  if (status === 'cancelled') {
+    return (
+      <div className="text-center">
+        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <XCircle className="w-8 h-8 text-gray-400" />
+        </div>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Betaling geannuleerd</h2>
+        <p className="text-gray-500 text-sm mb-8 leading-relaxed">
+          U heeft de betaling geannuleerd. Uw beoordeling is opgeslagen als concept en u kunt deze
+          later alsnog indienen.
+        </p>
+        <div className="flex flex-col gap-3">
+          {assessmentId && (
+            <Link
+              href={`/assessment/${assessmentId}`}
+              className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-blue-500/30 hover:scale-[1.02] transition-all"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Opnieuw betalen
+            </Link>
+          )}
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center justify-center gap-2 border border-gray-200 text-gray-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-all text-sm"
+          >
+            Terug naar dashboard
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === 'failed') {
+    return (
+      <div className="text-center">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <AlertTriangle className="w-8 h-8 text-red-500" />
+        </div>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Betaling mislukt</h2>
+        <p className="text-gray-500 text-sm mb-8 leading-relaxed">
+          Uw betaling is helaas niet geslaagd. Controleer uw betaalmethode en probeer het opnieuw.
+          Uw beoordeling is bewaard als concept.
+        </p>
+        <div className="flex flex-col gap-3">
+          {assessmentId && (
+            <Link
+              href={`/assessment/${assessmentId}`}
+              className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-blue-500/30 hover:scale-[1.02] transition-all"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Opnieuw proberen
+            </Link>
+          )}
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center justify-center gap-2 border border-gray-200 text-gray-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-all text-sm"
+          >
+            Terug naar dashboard
+          </Link>
+        </div>
       </div>
     );
   }
@@ -63,16 +145,17 @@ function SuccessContent() {
   if (status === 'error') {
     return (
       <div className="text-center">
-        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <span className="text-2xl text-red-500 font-bold">!</span>
+        <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <AlertTriangle className="w-8 h-8 text-amber-500" />
         </div>
-        <h2 className="text-xl font-bold text-gray-900">Er is iets misgegaan</h2>
-        <p className="text-gray-500 text-sm mt-2 mb-6">
-          Uw betaling is mogelijk wel gelukt. Controleer uw dashboard.
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Status onbekend</h2>
+        <p className="text-gray-500 text-sm mb-8 leading-relaxed">
+          We konden de betaalstatus niet ophalen. Controleer uw dashboard — als de betaling gelukt
+          is, staat uw beoordeling daar als betaald.
         </p>
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold"
+          className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-blue-500/30 hover:scale-[1.02] transition-all"
         >
           Naar dashboard
           <ArrowRight className="w-4 h-4" />
@@ -81,6 +164,7 @@ function SuccessContent() {
     );
   }
 
+  // status === 'success'
   return (
     <div className="text-center">
       <div className="w-20 h-20 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-green-500/30">
@@ -88,7 +172,8 @@ function SuccessContent() {
       </div>
       <h2 className="text-2xl font-bold text-gray-900 mb-2">Betaling geslaagd!</h2>
       <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto leading-relaxed">
-        Uw beoordeling is ingediend en uw compliance rapport is klaar. Bekijk uw resultaten en download uw factuur.
+        Uw beoordeling is ingediend en uw compliance rapport is klaar. Bekijk uw resultaten en
+        download uw factuur.
       </p>
 
       <div className="flex flex-col gap-3">
@@ -114,10 +199,7 @@ function SuccessContent() {
       </div>
 
       <div className="mt-4">
-        <Link
-          href="/dashboard"
-          className="text-gray-400 hover:text-gray-600 text-sm transition-colors"
-        >
+        <Link href="/dashboard" className="text-gray-400 hover:text-gray-600 text-sm transition-colors">
           Terug naar dashboard
         </Link>
       </div>
