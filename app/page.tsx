@@ -227,7 +227,7 @@ export default function LandingPage() {
             Veiligheid en privacy voorop
           </h2>
           <p className="text-gray-500 max-w-xl mx-auto text-sm leading-relaxed">
-            Uw gegevens worden beveiligd opgeslagen. Betalingen verlopen veilig via Stripe.
+            Uw gegevens worden beveiligd opgeslagen. Betalingen verlopen veilig via iDEAL.
             Wij voldoen aan de AVG en verwerken uw gegevens uitsluitend voor het leveren van
             onze dienst.
           </p>

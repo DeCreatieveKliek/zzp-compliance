@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
   const checkoutSession = await stripe.checkout.sessions.create({
-    payment_method_types: ['card', 'ideal'],
+    payment_method_types: ['ideal'],
     line_items: [
       {
         price_data: {
