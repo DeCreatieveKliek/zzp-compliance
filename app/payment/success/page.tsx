@@ -3,28 +3,52 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { CheckCircle, Loader2, ArrowRight, Shield } from 'lucide-react';
+import { CheckCircle, Loader2, ArrowRight, Shield, FileText } from 'lucide-react';
 
 function SuccessContent() {
   const searchParams = useSearchParams();
   const assessmentId = searchParams.get('assessment_id');
-  const sessionId = searchParams.get('session_id');
 
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [invoiceId, setInvoiceId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!sessionId || !assessmentId) {
+    if (!assessmentId) {
       setStatus('error');
       return;
     }
 
-    // Give Stripe webhook a moment to process, then redirect
-    const timer = setTimeout(() => {
-      setStatus('success');
-    }, 2000);
+    // Poll until the webhook has processed the payment (max ~10s)
+    let attempts = 0;
+    const poll = async () => {
+      attempts++;
+      try {
+        const res = await fetch(`/api/assessments/${assessmentId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.assessment?.status === 'PAID') {
+            // Also fetch the invoice ID if available
+            if (data.assessment?.invoice?.id) {
+              setInvoiceId(data.assessment.invoice.id);
+            }
+            setStatus('success');
+            return;
+          }
+        }
+      } catch {
+        // ignore
+      }
 
-    return () => clearTimeout(timer);
-  }, [sessionId, assessmentId]);
+      if (attempts < 10) {
+        setTimeout(poll, 1500);
+      } else {
+        // Show success anyway — webhook may arrive slightly later
+        setStatus('success');
+      }
+    };
+
+    poll();
+  }, [assessmentId]);
 
   if (status === 'loading') {
     return (
@@ -40,7 +64,7 @@ function SuccessContent() {
     return (
       <div className="text-center">
         <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <span className="text-2xl">!</span>
+          <span className="text-2xl text-red-500 font-bold">!</span>
         </div>
         <h2 className="text-xl font-bold text-gray-900">Er is iets misgegaan</h2>
         <p className="text-gray-500 text-sm mt-2 mb-6">
@@ -64,17 +88,31 @@ function SuccessContent() {
       </div>
       <h2 className="text-2xl font-bold text-gray-900 mb-2">Betaling geslaagd!</h2>
       <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto leading-relaxed">
-        Uw beoordeling is ingediend en uw compliance rapport is klaar. Bekijk nu uw resultaten.
+        Uw beoordeling is ingediend en uw compliance rapport is klaar. Bekijk uw resultaten en download uw factuur.
       </p>
-      {assessmentId && (
-        <Link
-          href={`/assessment/${assessmentId}`}
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3.5 rounded-xl font-semibold shadow-lg shadow-blue-500/30 hover:scale-[1.02] transition-all"
-        >
-          Bekijk mijn resultaten
-          <ArrowRight className="w-4 h-4" />
-        </Link>
-      )}
+
+      <div className="flex flex-col gap-3">
+        {assessmentId && (
+          <Link
+            href={`/assessment/${assessmentId}`}
+            className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3.5 rounded-xl font-semibold shadow-lg shadow-blue-500/30 hover:scale-[1.02] transition-all"
+          >
+            Bekijk mijn resultaten
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        )}
+
+        {invoiceId && (
+          <Link
+            href={`/invoice/${invoiceId}`}
+            className="inline-flex items-center justify-center gap-2 border-2 border-gray-200 text-gray-700 px-8 py-3.5 rounded-xl font-semibold hover:bg-gray-50 transition-all"
+          >
+            <FileText className="w-4 h-4" />
+            Factuur bekijken
+          </Link>
+        )}
+      </div>
+
       <div className="mt-4">
         <Link
           href="/dashboard"

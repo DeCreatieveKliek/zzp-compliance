@@ -18,6 +18,7 @@ model User {
 
   assessments Assessment[]
   payments    Payment[]
+  invoices    Invoice[]
 }
 
 model Assessment {
@@ -33,18 +34,40 @@ model Assessment {
 
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   payment Payment?
+  invoice Invoice?
 }
 
 model Payment {
   id              String   @id @default(cuid())
   userId          String
   assessmentId    String   @unique
-  stripeSessionId String?  @unique
-  status          String   @default("PENDING") // PENDING, PAID, FAILED
+  molliePaymentId String?  @unique
+  status          String   @default("PENDING") // PENDING, PAID, FAILED, EXPIRED
   amount          Int      @default(2999) // cents (€29.99)
   currency        String   @default("eur")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assessment Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+}
+
+model Invoice {
+  id             String   @id @default(cuid())
+  invoiceNumber  String   @unique // e.g. INV-2024-0001
+  userId         String
+  assessmentId   String   @unique
+  amount         Int      @default(2999) // cents
+  vatAmount      Int      @default(629)  // 21% BTW, cents
+  totalAmount    Int      @default(3628) // incl. BTW
+  currency       String   @default("EUR")
+  status         String   @default("PAID") // PAID
+  customerName   String
+  customerEmail  String
+  companyName    String?
+  description    String   @default("ZZP Compliance Beoordeling")
+  issuedAt       DateTime @default(now())
+  createdAt      DateTime @default(now())
 
   user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   assessment Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)

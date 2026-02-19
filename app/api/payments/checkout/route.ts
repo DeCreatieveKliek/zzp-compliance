@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/db';
-import { getStripe, ASSESSMENT_PRICE } from '@/lib/stripe';
+import { getMollie, ASSESSMENT_PRICE, ASSESSMENT_PRICE_DISPLAY } from '@/lib/mollie';
+import { Locale } from '@mollie/api-client';
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -25,30 +26,19 @@ export async function POST(req: NextRequest) {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
-  const checkoutSession = await getStripe().checkout.sessions.create({
-    payment_method_types: ['ideal'],
-    line_items: [
-      {
-        price_data: {
-          currency: 'eur',
-          product_data: {
-            name: 'ZZP Compliance Beoordeling',
-            description: `Beoordeling: ${assessment.title}`,
-          },
-          unit_amount: ASSESSMENT_PRICE,
-        },
-        quantity: 1,
-      },
-    ],
-    mode: 'payment',
-    success_url: `${appUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}&assessment_id=${assessmentId}`,
-    cancel_url: `${appUrl}/assessment/${assessmentId}`,
+  const molliePayment = await getMollie().payments.create({
+    amount: {
+      currency: 'EUR',
+      value: ASSESSMENT_PRICE_DISPLAY,
+    },
+    description: `ZZP Compliance Beoordeling — ${assessment.title}`,
+    redirectUrl: `${appUrl}/payment/success?assessment_id=${assessmentId}`,
+    webhookUrl: `${appUrl}/api/payments/webhook`,
     metadata: {
       assessmentId,
       userId: session.user.id,
     },
-    customer_email: session.user.email ?? undefined,
-    locale: 'nl',
+    locale: Locale.nl_NL,
   });
 
   await prisma.payment.upsert({
@@ -56,15 +46,16 @@ export async function POST(req: NextRequest) {
     create: {
       userId: session.user.id,
       assessmentId,
-      stripeSessionId: checkoutSession.id,
+      molliePaymentId: molliePayment.id,
       status: 'PENDING',
       amount: ASSESSMENT_PRICE,
     },
     update: {
-      stripeSessionId: checkoutSession.id,
+      molliePaymentId: molliePayment.id,
       status: 'PENDING',
     },
   });
 
-  return NextResponse.json({ url: checkoutSession.url });
+  const checkoutUrl = molliePayment.getCheckoutUrl();
+  return NextResponse.json({ url: checkoutUrl });
 }

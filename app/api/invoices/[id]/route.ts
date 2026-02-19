@@ -13,14 +13,14 @@ export async function GET(
 
   const { id } = await params;
 
-  const assessment = await prisma.assessment.findFirst({
+  const invoice = await prisma.invoice.findFirst({
     where: { id, userId: session.user.id },
-    include: { payment: true, invoice: true },
+    include: { assessment: true },
   });
 
-  if (!assessment) {
-    return NextResponse.json({ error: 'Niet gevonden' }, { status: 404 });
+  if (!invoice) {
+    return NextResponse.json({ error: 'Factuur niet gevonden' }, { status: 404 });
   }
 
-  return NextResponse.json({ assessment });
+  return NextResponse.json({ invoice });
 }

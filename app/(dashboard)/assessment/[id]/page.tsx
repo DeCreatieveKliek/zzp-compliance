@@ -11,6 +11,7 @@ import {
   CreditCard,
   Lock,
   TrendingUp,
+  FileText,
 } from 'lucide-react';
 import SubmitPaymentButton from './submit-payment-button';
 
@@ -26,7 +27,7 @@ export default async function AssessmentDetailPage({
 
   const assessment = await prisma.assessment.findFirst({
     where: { id, userId: session.user.id },
-    include: { payment: true },
+    include: { payment: true, invoice: true },
   });
 
   if (!assessment) notFound();
@@ -79,17 +80,28 @@ export default async function AssessmentDetailPage({
         Terug naar overzicht
       </Link>
 
-      {/* Title */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">{assessment.title}</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Aangemaakt op{' '}
-          {new Date(assessment.createdAt).toLocaleDateString('nl-NL', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-          })}
-        </p>
+      {/* Title + invoice link */}
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">{assessment.title}</h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Aangemaakt op{' '}
+            {new Date(assessment.createdAt).toLocaleDateString('nl-NL', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+            })}
+          </p>
+        </div>
+        {isPaid && assessment.invoice && (
+          <Link
+            href={`/invoice/${assessment.invoice.id}`}
+            className="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+          >
+            <FileText className="w-4 h-4" />
+            Factuur
+          </Link>
+        )}
       </div>
 
       {isPaid ? (
@@ -150,24 +162,55 @@ export default async function AssessmentDetailPage({
             </div>
             <div className="divide-y divide-gray-100">
               {[
-                { key: 'authority', label: 'Gezag over anderen' },
-                { key: 'substitution', label: 'Vervanging mogelijk' },
-                { key: 'embedded', label: 'Ingebed in organisatie' },
-                { key: 'ownTools', label: 'Eigen gereedschap' },
-              ].map((q) => (
-                <div key={q.key} className="flex items-center justify-between px-6 py-3.5">
-                  <span className="text-sm text-gray-600">{q.label}</span>
-                  <span
-                    className={`text-sm font-semibold ${
-                      answers[q.key] === true
-                        ? 'text-emerald-600'
-                        : answers[q.key] === false
-                        ? 'text-red-500'
-                        : 'text-gray-400'
-                    }`}
-                  >
-                    {answers[q.key] === true ? 'Ja' : answers[q.key] === false ? 'Nee' : '—'}
-                  </span>
+                { section: 'Gezagsverhouding', questions: [
+                  { key: 'instructies', label: 'Instructies over werkmethode' },
+                  { key: 'werkTijden', label: 'Vaste werktijden / aanwezigheidsplicht' },
+                  { key: 'toezicht', label: 'Dagelijks toezicht' },
+                ]},
+                { section: 'Persoonlijke arbeidsplicht', questions: [
+                  { key: 'persoonlijkVerplicht', label: 'Persoonlijke uitvoerplicht' },
+                  { key: 'vervanger', label: 'Vrije vervanging mogelijk' },
+                  { key: 'verlof', label: 'Verlofgoedkeuring vereist' },
+                ]},
+                { section: 'Beloning en risico', questions: [
+                  { key: 'vasteVergoeding', label: 'Vaste vergoeding ongeacht output' },
+                  { key: 'doorbetaling', label: 'Doorbetaling bij ziekte/vakantie' },
+                  { key: 'financieelRisico', label: 'Financieel ondernemersrisico' },
+                ]},
+                { section: 'Inbedding in de organisatie', questions: [
+                  { key: 'vasteWerkplek', label: 'Vaste werkplek bij opdrachtgever' },
+                  { key: 'bedrijfsmiddelen', label: 'Hoofdzakelijk bedrijfsmiddelen opdrachtgever' },
+                  { key: 'eigenGereedschap', label: 'Eigen professioneel gereedschap' },
+                  { key: 'teamlid', label: 'Intern gepresenteerd als teamlid' },
+                ]},
+                { section: 'Zelfstandig ondernemerschap', questions: [
+                  { key: 'meerdereOpdrachtgevers', label: 'Meerdere opdrachtgevers' },
+                  { key: 'exclusiviteit', label: 'Contractuele exclusiviteit' },
+                  { key: 'kvkInschrijving', label: 'KvK-inschrijving' },
+                  { key: 'aansprakelijkheidsverzekering', label: 'Eigen aansprakelijkheidsverzekering' },
+                  { key: 'langetermijn', label: 'Langdurige opdracht (>12 mnd)' },
+                ]},
+              ].map(({ section, questions }) => (
+                <div key={section}>
+                  <div className="px-6 py-2 bg-gray-50">
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">{section}</p>
+                  </div>
+                  {questions.map((q) => (
+                    <div key={q.key} className="flex items-center justify-between px-6 py-3">
+                      <span className="text-sm text-gray-600">{q.label}</span>
+                      <span
+                        className={`text-sm font-semibold ${
+                          answers[q.key] === true
+                            ? 'text-emerald-600'
+                            : answers[q.key] === false
+                            ? 'text-red-500'
+                            : 'text-gray-400'
+                        }`}
+                      >
+                        {answers[q.key] === true ? 'Ja' : answers[q.key] === false ? 'Nee' : '—'}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               ))}
               {answers.notes && (
