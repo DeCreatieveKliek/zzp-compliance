@@ -24,7 +24,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Al betaald' }, { status: 400 });
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  // VERCEL_URL is set automatically by Vercel on every deployment (no https://)
+  const appUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
 
   let molliePayment;
   try {
