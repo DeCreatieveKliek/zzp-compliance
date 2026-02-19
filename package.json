@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "migrate:deploy": "node scripts/migrate-deploy.mjs",
+    "build:production": "npm run migrate:deploy && next build",
+    "start:production": "npm run migrate:deploy && next start",
+    "vercel-build": "npm run build:production"
   },
   "dependencies": {
     "react": "^19.0.0",
@@ -23,6 +27,7 @@
     "postcss": "^8.4.49",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.17.0",
-    "eslint-config-next": "15.1.6"
+    "eslint-config-next": "15.1.6",
+    "prisma": "^6.4.1"
   }
 }
