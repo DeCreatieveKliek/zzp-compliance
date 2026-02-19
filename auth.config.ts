@@ -20,8 +20,12 @@ export const authConfig = {
         return Response.redirect(loginUrl);
       }
 
-      if (isLoggedIn && (nextUrl.pathname === '/login' || nextUrl.pathname === '/register')) {
+      if (isLoggedIn && (nextUrl.pathname === '/login' || nextUrl.pathname === '/register' || nextUrl.pathname === '/')) {
         return Response.redirect(new URL('/dashboard', nextUrl.origin));
+      }
+
+      if (!isLoggedIn && nextUrl.pathname === '/') {
+        return Response.redirect(new URL('/login', nextUrl.origin));
       }
 
       return true;
