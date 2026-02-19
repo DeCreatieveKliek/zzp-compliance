@@ -36,6 +36,8 @@ next-env.d.ts
 /app/generated/prisma
 
 # Database
+*.db
+*.db-journal
 prisma/*.db
 prisma/*.db-journal
 
