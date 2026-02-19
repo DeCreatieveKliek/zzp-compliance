@@ -1,9 +1,10 @@
-import type { Metadata } from "next";
-import "./globals.css";
+import type { Metadata } from 'next';
+import './globals.css';
+import { SessionProvider } from 'next-auth/react';
 
 export const metadata: Metadata = {
-  title: "ZZP Compliance",
-  description: "Monitor ZZP naleving met geautomatiseerde risicobeoordelingen",
+  title: 'ZZP Compliance',
+  description: 'Beoordeel het risico op schijnzelfstandigheid. Gratis invullen, direct resultaat.',
 };
 
 export default function RootLayout({
@@ -13,7 +14,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="nl">
-      <body>{children}</body>
+      <body className="antialiased">
+        <SessionProvider>{children}</SessionProvider>
+      </body>
     </html>
   );
 }

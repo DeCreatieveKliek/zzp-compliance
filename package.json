@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "npm run migrate:deploy && next build",
+    "postinstall": "prisma generate",
     "start": "next start",
     "lint": "next lint",
     "migrate:deploy": "node scripts/migrate-deploy.mjs",
@@ -13,22 +14,33 @@
     "vercel-build": "npm run build:production"
   },
   "dependencies": {
+    "@auth/prisma-adapter": "^2.11.1",
+    "@mollie/api-client": "^4.4.0",
+    "@neondatabase/serverless": "^1.0.2",
+    "@prisma/adapter-better-sqlite3": "^7.4.0",
+    "@prisma/adapter-neon": "^7.4.0",
+    "@prisma/client": "^7.4.0",
+    "@types/bcryptjs": "^2.4.6",
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.6.2",
+    "lucide-react": "^0.468.0",
+    "next": "15.2.6",
+    "next-auth": "^5.0.0-beta.30",
+    "prisma": "^7.4.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "next": "15.1.6",
-    "lucide-react": "^0.468.0",
-    "@prisma/client": "^6.4.1",
-    "prisma": "^6.4.1"
+    "resend": "^6.9.2"
   },
   "devDependencies": {
-    "typescript": "^5.7.2",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.10.2",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.2",
-    "tailwindcss": "^3.4.17",
-    "postcss": "^8.4.49",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.17.0",
-    "eslint-config-next": "15.1.6"
+    "eslint-config-next": "15.2.6",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2"
   }
 }
