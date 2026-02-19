@@ -24,15 +24,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Al betaald' }, { status: 400 });
   }
 
-  // VERCEL_PROJECT_PRODUCTION_URL = stable production URL (set by Vercel automatically)
-  // VERCEL_URL = deployment-specific URL (changes every deploy, avoid for redirects)
+  // NEXT_PUBLIC_APP_URL must be set in Vercel → Project Settings → Environment Variables
+  // VERCEL_PROJECT_PRODUCTION_URL is the stable fallback (auto-set by Vercel for production)
+  // NEVER use VERCEL_URL: it is deployment-specific and becomes invalid after each new deploy,
+  // which causes Mollie redirects to return a 404 DEPLOYMENT_NOT_FOUND error.
   const appUrl =
     process.env.NEXT_PUBLIC_APP_URL ||
     (process.env.VERCEL_PROJECT_PRODUCTION_URL
       ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-      : process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
       : 'http://localhost:3000');
+
+  if (appUrl === 'http://localhost:3000' && process.env.NODE_ENV === 'production') {
+    console.error(
+      '[checkout] NEXT_PUBLIC_APP_URL is not set — redirect URLs may be incorrect. ' +
+        'Add it in Vercel → Project Settings → Environment Variables.'
+    );
+  }
 
   let molliePayment;
   try {

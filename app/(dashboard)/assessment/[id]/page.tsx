@@ -2,6 +2,7 @@ import { auth } from '@/auth';
 import { prisma } from '@/lib/db';
 import { notFound, redirect } from 'next/navigation';
 import { computeScore } from '@/lib/scoring';
+import { ASSESSMENT_PRICE_DISPLAY } from '@/lib/mollie';
 import Link from 'next/link';
 import {
   CheckCircle,
@@ -375,7 +376,7 @@ export default async function AssessmentDetailPage({
             <div className="bg-white/10 rounded-2xl p-4 mb-4">
               <div className="flex justify-between items-center">
                 <span className="text-white/80 text-sm">ZZP Compliance Beoordeling</span>
-                <span className="font-bold text-xl">€29,99</span>
+                <span className="font-bold text-xl">€{ASSESSMENT_PRICE_DISPLAY}</span>
               </div>
               <p className="text-blue-200 text-xs mt-1">Eenmalig, direct resultaat</p>
             </div>

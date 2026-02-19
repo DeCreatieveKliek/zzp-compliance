@@ -603,7 +603,7 @@ export default function NewAssessmentPage() {
                 </div>
                 <div className="mt-3 pt-3 border-t border-blue-200 flex justify-between items-center">
                   <span className="text-blue-900 font-semibold text-sm">ZZP Compliance Beoordeling</span>
-                  <span className="text-blue-900 font-bold text-lg">€29,99</span>
+                  <span className="text-blue-900 font-bold text-lg">€10,00</span>
                 </div>
               </div>
 
